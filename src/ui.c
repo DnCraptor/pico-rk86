@@ -250,9 +250,6 @@ void ui_stop(void)
     screen=save;
 }
 
-
-void ui_sleep(uint16_t ms)
-{
-    uint32_t _sleep=getCycleCount()+(ms)*160000;
-    while (((uint32_t)(getCycleCount() - _sleep)) & 0x80000000);
+void ui_sleep(uint16_t ms) {
+	sleep_ms(ms);
 }

@@ -226,7 +226,7 @@ int main() {
     uint32_t prev_T = getCycleCount();
     uint32_t sec_T = prev_T;
     uint32_t cycles = 0, sec_cycles = 0;
-    bool turbo = false, win = false;
+    bool turbo = true, win = false;
     bool t = true;
     while(true) {
         gpio_put(PICO_DEFAULT_LED_PIN, t); t = !t;
@@ -247,7 +247,7 @@ int main() {
             sec_cycles += cycles;
             cycles = 0;
         }
-        if ( (T - sec_T) >= freq * KHZ) {
+        if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
             printf("Speed: %d; rtc: %08Xh", sec_cycles, T);
             //kbd_dump();
