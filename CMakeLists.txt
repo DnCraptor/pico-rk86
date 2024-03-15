@@ -164,7 +164,7 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
         PWM_PIN1=27
         BEEPER_PIN=28
 
-        #MNGR_DEBUG=1
+        MNGR_DEBUG=1
 
         __ets__=1
 )

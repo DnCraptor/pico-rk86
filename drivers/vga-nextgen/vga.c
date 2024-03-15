@@ -254,16 +254,11 @@ void __time_critical_func() dma_handler_VGA() {
     if(graphics_buffer != NULL)
     switch (graphics_mode) {
         case VG75:
-            output_buffer_8bit = (uint8_t *)output_buffer_16bit;
             for (int x = 64; x--;) {
-                *output_buffer_8bit++ = current_palette[*input_buffer_8bit >> 7 & 1];
-                *output_buffer_8bit++ = current_palette[*input_buffer_8bit >> 6 & 1];
-                *output_buffer_8bit++ = current_palette[*input_buffer_8bit >> 5 & 1];
-                *output_buffer_8bit++ = current_palette[*input_buffer_8bit >> 4 & 1];
-                *output_buffer_8bit++ = current_palette[*input_buffer_8bit >> 3 & 1];
-                *output_buffer_8bit++ = current_palette[*input_buffer_8bit >> 2 & 1];
-                *output_buffer_8bit++ = current_palette[*input_buffer_8bit >> 1 & 1];
-                *output_buffer_8bit++ = current_palette[*input_buffer_8bit >> 0 & 1];
+                *output_buffer_16bit++ = current_palette[*input_buffer_8bit >> 6 & 3];
+                *output_buffer_16bit++ = current_palette[*input_buffer_8bit >> 4 & 3];
+                *output_buffer_16bit++ = current_palette[*input_buffer_8bit >> 2 & 3];
+                *output_buffer_16bit++ = current_palette[*input_buffer_8bit >> 0 & 3];
                 input_buffer_8bit++;
             }
             break;
@@ -361,7 +356,7 @@ void graphics_set_mode(enum graphics_mode_t mode) {
             text_buffer_width = 80;
             text_buffer_height = 30;
     }
-    memset(graphics_buffer, 0, graphics_buffer_height * graphics_buffer_width);
+  //  memset(graphics_buffer, 0, graphics_buffer_height * graphics_buffer_width);
     if (_SM_VGA < 0) return; // если  VGA не инициализирована -
 
     graphics_mode = mode;

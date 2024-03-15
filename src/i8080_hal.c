@@ -9,11 +9,8 @@
 #include "align4.h"
 #include "board.h"
 
-
-uint8_t RAM[0x8000], RAM2[0x2000];
-uint8_t *ROM=(uint8_t*)(0x40110000-0x2000);	// верх IRAM
+uint8_t RAM[0x8000], RAM2[0x2000], ROM[0x6000];
 uint32_t i8080_cycles;
-
 
 int i8080_hal_memory_read_word(int addr)
 {
@@ -131,48 +128,34 @@ void i8080_hal_memory_write_byte(int addr, int byte)
     }
 }
 
-
-int i8080_hal_io_input(int port)
-{
-    return 0;
+int i8080_hal_io_input(int port) {
+    return 0; // TODO: ??
 }
 
-
-void i8080_hal_io_output(int port, int value)
-{
+void i8080_hal_io_output(int port, int value) {
+	// TODO: ??
 }
 
-
-void i8080_hal_iff(int on)
-{
+void i8080_hal_iff(int on) {
     if (on) pwm_set_gpio_level(BEEPER_PIN, 255);
 	else pwm_set_gpio_level(BEEPER_PIN, 0);
 }
 
-
-unsigned char* i8080_hal_memory(void)
-{
+unsigned char* i8080_hal_memory(void) {
     return RAM;
 }
 
-
-unsigned char* i8080_hal_rom(void)
-{
+unsigned char* i8080_hal_rom(void) {
     return ROM;
 }
 
-
-void i8080_hal_init(void)
-{
+void i8080_hal_init(void) {
     // Инитим ОЗУ
     ets_memset(RAM, 0x00, sizeof(RAM));
     ets_memset(RAM2, 0x00, sizeof(RAM2));
     
     // Инитим ПЗУ
-    ets_memset(ROM+0x0000, 0xFF, 0x1800);
-    ets_memcpy(ROM+0x1800, ROM_F800, 0x8000);
-    
-    // Инитим порт пищалки
-///    gpio_init_output(BEEPER);
-///    gpio_off(BEEPER);
+    ets_memset(ROM + 0x0000, 0xFF, 0x1800);
+    ets_memcpy(ROM + 0x1800, ROM_F800, sizeof(ROM_F800)); // 0x8000);
+    ets_memset(ROM + 0x1800 + sizeof(ROM_F800), 0xFF, sizeof(ROM) - 0x1800 - sizeof(ROM_F800));
 }

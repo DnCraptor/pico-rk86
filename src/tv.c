@@ -104,7 +104,7 @@ static const uint8_t* tv_i2s_cb(void)
 void tv_init(void)
 {
     // Инитим порт SYNC
-    gpio_init_output(TV_SYNC);
+  ///  gpio_init_output(TV_SYNC);
     
     // Заполняем все паттерны (порядок байт 3-2-1-0)
     

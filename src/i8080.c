@@ -147,13 +147,13 @@ struct i8080 {
 #define ADD(val) \
 {                                               \
     work16 = (uns16)A + (val);                  \
-    index = ((A & 0x88) >> 1) |                 \
+    _index = ((A & 0x88) >> 1) |                 \
             (((val) & 0x88) >> 2) |             \
             ((work16 & 0x88) >> 3);             \
     A = work16 & 0xff;                          \
     S_FLAG = ((A & 0x80) != 0);                 \
     Z_FLAG = (A == 0);                          \
-    H_FLAG = half_carry_table[index & 0x7];     \
+    H_FLAG = half_carry_table[_index & 0x7];     \
     P_FLAG = PARITY(A);                         \
     C_FLAG = ((work16 & 0x0100) != 0);          \
 }
@@ -161,13 +161,13 @@ struct i8080 {
 #define ADC(val) \
 {                                               \
     work16 = (uns16)A + (val) + C_FLAG;         \
-    index = ((A & 0x88) >> 1) |                 \
+    _index = ((A & 0x88) >> 1) |                 \
             (((val) & 0x88) >> 2) |             \
             ((work16 & 0x88) >> 3);             \
     A = work16 & 0xff;                          \
     S_FLAG = ((A & 0x80) != 0);                 \
     Z_FLAG = (A == 0);                          \
-    H_FLAG = half_carry_table[index & 0x7];     \
+    H_FLAG = half_carry_table[_index & 0x7];     \
     P_FLAG = PARITY(A);                         \
     C_FLAG = ((work16 & 0x0100) != 0);          \
 }
@@ -175,13 +175,13 @@ struct i8080 {
 #define SUB(val) \
 {                                                \
     work16 = (uns16)A - (val);                   \
-    index = ((A & 0x88) >> 1) |                  \
+    _index = ((A & 0x88) >> 1) |                  \
             (((val) & 0x88) >> 2) |              \
             ((work16 & 0x88) >> 3);              \
     A = work16 & 0xff;                           \
     S_FLAG = ((A & 0x80) != 0);                  \
     Z_FLAG = (A == 0);                           \
-    H_FLAG = !sub_half_carry_table[index & 0x7]; \
+    H_FLAG = !sub_half_carry_table[_index & 0x7]; \
     P_FLAG = PARITY(A);                          \
     C_FLAG = ((work16 & 0x0100) != 0);           \
 }
@@ -189,13 +189,13 @@ struct i8080 {
 #define SBB(val) \
 {                                                \
     work16 = (uns16)A - (val) - C_FLAG;          \
-    index = ((A & 0x88) >> 1) |                  \
+    _index = ((A & 0x88) >> 1) |                  \
             (((val) & 0x88) >> 2) |              \
             ((work16 & 0x88) >> 3);              \
     A = work16 & 0xff;                           \
     S_FLAG = ((A & 0x80) != 0);                  \
     Z_FLAG = (A == 0);                           \
-    H_FLAG = !sub_half_carry_table[index & 0x7]; \
+    H_FLAG = !sub_half_carry_table[_index & 0x7]; \
     P_FLAG = PARITY(A);                          \
     C_FLAG = ((work16 & 0x0100) != 0);           \
 }
@@ -203,12 +203,12 @@ struct i8080 {
 #define CMP(val) \
 {                                                \
     work16 = (uns16)A - (val);                   \
-    index = ((A & 0x88) >> 1) |                  \
+    _index = ((A & 0x88) >> 1) |                  \
             (((val) & 0x88) >> 2) |              \
             ((work16 & 0x88) >> 3);              \
     S_FLAG = ((work16 & 0x80) != 0);             \
     Z_FLAG = ((work16 & 0xff) == 0);             \
-    H_FLAG = !sub_half_carry_table[index & 0x7]; \
+    H_FLAG = !sub_half_carry_table[_index & 0x7]; \
     C_FLAG = ((work16 & 0x0100) != 0);           \
     P_FLAG = PARITY(work16 & 0xff);              \
 }
@@ -269,7 +269,7 @@ static struct i8080 cpu;
 static uns32 work32;
 static uns16 work16;
 static uns8 work8;
-static int index;
+static int _index;
 static uns8 carry, add;
 
 uint8_t parity_table[] = {

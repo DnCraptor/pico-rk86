@@ -18,7 +18,9 @@
 /
 /----------------------------------------------------------------------------*/
 
-
+#include <boards/pico.h>
+#include <hardware/pio.h>
+#include <stdbool.h>
 #include <string.h>
 #include "ff.h"			/* Declarations of FatFs API */
 #include "diskio.h"		/* Declarations of device I/O functions */
@@ -3643,7 +3645,6 @@ FRESULT f_mount (
 	LEAVE_FF(fs, res);
 }
 
-
 #include "debug.h"
 
 /*-----------------------------------------------------------------------*/
@@ -3656,8 +3657,9 @@ FRESULT f_open (
 	BYTE mode			/* Access mode and open mode flags */
 )
 {
+	gpio_put(PICO_DEFAULT_LED_PIN, true);
 	#ifdef MNGR_DEBUG
-	if (strcmp(path, "\\atari.log") != 0) printf("f_open(%s, %02Xh)", path, mode);
+	if (strcmp(path, DEBUG_LOG) != 0) printf("f_open(%s, %02Xh)", path, mode);
 	#endif
 	FRESULT res;
 	DIR dj;
@@ -4177,6 +4179,7 @@ FRESULT f_close (
 #endif
 		}
 	}
+	gpio_put(PICO_DEFAULT_LED_PIN, false);
 	return res;
 }
 

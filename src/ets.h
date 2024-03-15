@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <string.h>
 
 #define false	0
 #define true	1

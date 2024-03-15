@@ -30,13 +30,14 @@ extern "C" {
 #include "ps2_codes_rk.h"
 #include "main.h"
 #include "menu.h"
+#include "tv.h"
 }
 
 static FATFS fs;
 semaphore vga_start_semaphore;
 #define DISP_WIDTH (320)
 #define DISP_HEIGHT (240)
-uint8_t __screen[4]; // W/A is it req.? [DISP_WIDTH * DISP_HEIGHT];
+uint8_t __screen[4]; // [DISP_WIDTH * DISP_HEIGHT];
 
 pwm_config config = pwm_get_default_config();
 void PWM_init_pin(uint8_t pinN, uint16_t max_lvl) {
@@ -210,8 +211,10 @@ int main() {
     i8080_hal_init();
     i8080_init();
     i8080_jump(0xF800);
+
+    tv_init();
     vg75_init((uint8_t*)i8080_hal_memory());
-    
+
     // Инитим клавиатуру
     kbd_init();
     keymap_init();
@@ -224,7 +227,9 @@ int main() {
     uint32_t sec_T = prev_T;
     uint32_t cycles = 0, sec_cycles = 0;
     bool turbo = false, win = false;
+    bool t = true;
     while(true) {
+        gpio_put(PICO_DEFAULT_LED_PIN, t); t = !t;
         uint32_t T = getCycleCount();
         int32_t dT = T - prev_T;
         if ( (dT > 0) || (turbo) ) {
@@ -244,7 +249,7 @@ int main() {
         }
         if ( (T - sec_T) >= freq * KHZ) {
             // Прошла секунда
-            printf("Speed: %d; rtc: %08Xh", sec_cycles, READ_PERI_REG(0x60001200));
+            printf("Speed: %d; rtc: %08Xh", sec_cycles, T);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;
