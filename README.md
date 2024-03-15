@@ -1,4 +1,4 @@
-# RK8266
+# RK8266 port for RP2040
 Эмулятор Радио-86РК изначально на ESP8266 (см. https://github.com/klad-me/RK8266) - тут порт на ZX Murmulator: https://github.com/AlexEkb4ever/MURMULATOR_classical_scheme
 
 # Железо
