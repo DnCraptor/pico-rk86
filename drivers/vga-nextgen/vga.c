@@ -69,8 +69,6 @@ static uint16_t* txt_palette_fast = NULL;
 
 enum graphics_mode_t graphics_mode;
 
-uint8_t* tv_data_line(void);
-
 void __time_critical_func() dma_handler_VGA() {
     dma_hw->ints0 = 1u << dma_chan_ctrl;
     static uint32_t frame_number = 0;
@@ -119,13 +117,12 @@ void __time_critical_func() dma_handler_VGA() {
         case TGA_320x200x16:
         case EGA_320x200x16x4:
         case VGA_320x200x256x4:
-        case VG75:
         case GRAPHICSMODE_DEFAULT:
             line_number = screen_line / 2;
             if (screen_line % 2) return;
             y = screen_line / 2 - graphics_buffer_shift_y;
             break;
-
+        case VG75: // TODO: flext W/H
         case TEXTMODE_160x100:
         case TEXTMODE_53x30:
         case TEXTMODE_DEFAULT: {
@@ -210,8 +207,7 @@ void __time_critical_func() dma_handler_VGA() {
     // uint8_t* vbuf8=vbuf+(line*g_buf_width/2); //4bit buf
     //uint8_t* vbuf8=vbuf+(line*g_buf_width/4); //2bit buf
     //uint8_t* vbuf8=vbuf+((line&1)*8192+(line>>1)*g_buf_width/4);
-    //uint8_t* input_buffer_8bit = input_buffer + y / 2 * 80 + (y & 1) * 8192;
-    uint8_t* input_buffer_8bit = tv_data_line(); // TODO: sync line num 304
+    uint8_t* input_buffer_8bit = input_buffer + y / 2 * 80 + (y & 1) * 8192;
 
     //output_buffer = &lines_pattern[2 + ((line_number) & 1)];
 
@@ -253,15 +249,6 @@ void __time_critical_func() dma_handler_VGA() {
     uint8_t* output_buffer_8bit;
     if(graphics_buffer != NULL)
     switch (graphics_mode) {
-        case VG75:
-            for (int x = 64; x--;) {
-                *output_buffer_16bit++ = current_palette[*input_buffer_8bit >> 6 & 3];
-                *output_buffer_16bit++ = current_palette[*input_buffer_8bit >> 4 & 3];
-                *output_buffer_16bit++ = current_palette[*input_buffer_8bit >> 2 & 3];
-                *output_buffer_16bit++ = current_palette[*input_buffer_8bit >> 0 & 3];
-                input_buffer_8bit++;
-            }
-            break;
         case CGA_640x200x2:
             output_buffer_8bit = (uint8_t *)output_buffer_16bit;
         //1bit buf
@@ -352,6 +339,7 @@ void graphics_set_mode(enum graphics_mode_t mode) {
             break;
         case TEXTMODE_DEFAULT:
         case TEXTMODE_160x100:
+        case VG75: // TODO: flext W/H
         default:
             text_buffer_width = 80;
             text_buffer_height = 30;
@@ -379,6 +367,7 @@ void graphics_set_mode(enum graphics_mode_t mode) {
         case TEXTMODE_160x100:
         case TEXTMODE_53x30:
         case TEXTMODE_DEFAULT:
+        case VG75: // TODO: flext W/H
             //текстовая палитра
             for (int i = 0; i < 16; i++) {
                 txt_palette[i] = txt_palette[i] & 0x3f | palette16_mask >> 8;
@@ -403,8 +392,6 @@ void graphics_set_mode(enum graphics_mode_t mode) {
         case VGA_320x200x256x4:
         case EGA_320x200x16x4:
         case TGA_320x200x16:
-        case VG75:
-
             TMPL_LINE8 = 0b11000000;
             HS_SHIFT = 328 * 2;
             HS_SIZE = 48 * 2;

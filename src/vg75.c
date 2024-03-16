@@ -42,8 +42,11 @@ static volatile uint8_t buf_n=0;
 #define REVERSE		0x10
 #define UNDERLINE	0x20
 
-static uint16_t line=0;
-static uint8_t l=0, y=0;
+// номер линии на экране 0..304
+static uint16_t line = 0;
+// номер линии в текствой строке
+static uint8_t l = 0,
+ y = 0;
 static uint8_t blink=0, flags=0;
 static uint8_t *txt;
 static uint8_t line_text[120], line_attr[120];	// 120 для возможности сдвига изображения вправо
@@ -237,8 +240,8 @@ static inline void render_line(uint8_t *data)
 {
     if ( (line < screen.y_offset) || (y >= screen.screen_h) )
     {
-	// Пустые строки в начале и в конце кадра
-	empty_line(data);
+		// Пустые строки в начале и в конце кадра
+		empty_line(data);
     } else
     {
 	// Видимая линия
@@ -252,7 +255,7 @@ static inline void render_line(uint8_t *data)
 	    uint8_t c, a;
 	    
 #define SYM(zz) \
-	    do { \
+	do { \
 		c=line_text[o];	\
 		a=line_attr[o];	\
 		o++;	\
@@ -261,14 +264,14 @@ static inline void render_line(uint8_t *data)
 		    c=pg_tab[c & 0x0f];	\
 		    if (l < screen.underline_y)	\
 		    {	\
-			zz=(c & PG_TOP) ? 0x08 : 0x00;	\
+				zz=(c & PG_TOP) ? 0x08 : 0x00;	\
 		    } else	\
 		    if (l > screen.underline_y)	\
 		    {	\
-			zz=(c & PG_BOTTOM) ? 0x08 : 0x00;	\
+				zz=(c & PG_BOTTOM) ? 0x08 : 0x00;	\
 		    } else	\
 		    {	\
-			zz=((c & PG_LEFT) ? 0x38 : 0x00) | ((c & PG_RIGHT) ? 0x0F : 0x00) | ((c & PG_VERT) ? 0x08 : 0x00);	\
+				zz=((c & PG_LEFT) ? 0x38 : 0x00) | ((c & PG_RIGHT) ? 0x0F : 0x00) | ((c & PG_VERT) ? 0x08 : 0x00);	\
 		    }	\
 		} else	\
 		{	\
@@ -276,7 +279,7 @@ static inline void render_line(uint8_t *data)
 		    if ( (a & UNDERLINE) && (l==screen.underline_y) ) zz|=0x3F;	\
 		}	\
 		if (a & REVERSE) zz^=0x3F;	\
-	    } while(0)
+	} while(0)
 	    
 	    SYM(z1);
 	    SYM(z2);

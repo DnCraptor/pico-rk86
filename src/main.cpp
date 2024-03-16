@@ -35,9 +35,6 @@ extern "C" {
 
 static FATFS fs;
 semaphore vga_start_semaphore;
-#define DISP_WIDTH (320)
-#define DISP_HEIGHT (240)
-uint8_t __screen[4]; // [DISP_WIDTH * DISP_HEIGHT];
 
 pwm_config config = pwm_get_default_config();
 void PWM_init_pin(uint8_t pinN, uint16_t max_lvl) {
@@ -65,9 +62,12 @@ void nespad_update() {
  
 }
 
+extern "C" uint8_t RAM[0x8000];
+
 void __time_critical_func(render_core)() {
-    const auto buffer = __screen;
-    graphics_set_buffer(buffer, DISP_WIDTH, DISP_HEIGHT);
+    const auto buffer = RAM;
+    graphics_set_buffer(buffer, 320, 240); // ??
+    graphics_set_textbuffer(buffer);
     multicore_lockout_victim_init();
     graphics_init();
     graphics_set_textbuffer(buffer);
@@ -227,9 +227,9 @@ int main() {
     uint32_t sec_T = prev_T;
     uint32_t cycles = 0, sec_cycles = 0;
     bool turbo = true, win = false;
-    bool t = true;
+
     while(true) {
-        gpio_put(PICO_DEFAULT_LED_PIN, t); t = !t;
+        graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
         uint32_t T = getCycleCount();
         int32_t dT = T - prev_T;
         if ( (dT > 0) || (turbo) ) {
