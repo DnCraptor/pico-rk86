@@ -69,6 +69,7 @@ static uint16_t* txt_palette_fast = NULL;
 
 enum graphics_mode_t graphics_mode;
 
+
 void __time_critical_func() dma_handler_VGA() {
     dma_hw->ints0 = 1u << dma_chan_ctrl;
     static uint32_t frame_number = 0;
@@ -122,7 +123,7 @@ void __time_critical_func() dma_handler_VGA() {
             if (screen_line % 2) return;
             y = screen_line / 2 - graphics_buffer_shift_y;
             break;
-        case VG75: // TODO: flext W/H
+
         case TEXTMODE_160x100:
         case TEXTMODE_53x30:
         case TEXTMODE_DEFAULT: {
@@ -208,6 +209,7 @@ void __time_critical_func() dma_handler_VGA() {
     //uint8_t* vbuf8=vbuf+(line*g_buf_width/4); //2bit buf
     //uint8_t* vbuf8=vbuf+((line&1)*8192+(line>>1)*g_buf_width/4);
     uint8_t* input_buffer_8bit = input_buffer + y / 2 * 80 + (y & 1) * 8192;
+
 
     //output_buffer = &lines_pattern[2 + ((line_number) & 1)];
 
@@ -339,12 +341,11 @@ void graphics_set_mode(enum graphics_mode_t mode) {
             break;
         case TEXTMODE_DEFAULT:
         case TEXTMODE_160x100:
-        case VG75: // TODO: flext W/H
         default:
             text_buffer_width = 80;
             text_buffer_height = 30;
     }
-  //  memset(graphics_buffer, 0, graphics_buffer_height * graphics_buffer_width);
+    memset(graphics_buffer, 0, graphics_buffer_height * graphics_buffer_width);
     if (_SM_VGA < 0) return; // если  VGA не инициализирована -
 
     graphics_mode = mode;
@@ -367,7 +368,6 @@ void graphics_set_mode(enum graphics_mode_t mode) {
         case TEXTMODE_160x100:
         case TEXTMODE_53x30:
         case TEXTMODE_DEFAULT:
-        case VG75: // TODO: flext W/H
             //текстовая палитра
             for (int i = 0; i < 16; i++) {
                 txt_palette[i] = txt_palette[i] & 0x3f | palette16_mask >> 8;
@@ -392,6 +392,7 @@ void graphics_set_mode(enum graphics_mode_t mode) {
         case VGA_320x200x256x4:
         case EGA_320x200x16x4:
         case TGA_320x200x16:
+
             TMPL_LINE8 = 0b11000000;
             HS_SHIFT = 328 * 2;
             HS_SIZE = 48 * 2;
@@ -612,7 +613,7 @@ void graphics_init() {
     );
     //dma_channel_set_read_addr(dma_chan, &DMA_BUF_ADDR[0], false);
 
-    graphics_set_mode(VG75);
+    graphics_set_mode(GRAPHICSMODE_DEFAULT);
 
     irq_set_exclusive_handler(VGA_DMA_IRQ, dma_handler_VGA);
 

@@ -230,6 +230,7 @@ int main() {
 
     while(true) {
         graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
+        graphics_set_mode(TEXTMODE_DEFAULT); // TODO: dynamic W/H
         uint32_t T = getCycleCount();
         int32_t dT = T - prev_T;
         if ( (dT > 0) || (turbo) ) {
