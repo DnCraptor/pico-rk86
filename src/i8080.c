@@ -345,10 +345,10 @@ static void i8080_retrieve_flags(void) {
     C_FLAG = F & F_CARRY    ? 1 : 0;
 }
 
-static int i8080_execute(int opcode) {
+static int i8080_execute(uint8_t opcode) {
     int cpu_cycles;
-//    printf("i8080_execute(%02Xh) @ %ph", opcode, PC);
-    switch ((uint8_t)opcode && 0xFF) {
+ //   printf("i8080_execute(%02Xh) @ %ph", opcode, PC-1);
+    switch (opcode) {
         case 0x00:            /* nop */
         // Undocumented NOP.
         case 0x08:            /* nop */

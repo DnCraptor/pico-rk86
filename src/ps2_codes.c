@@ -11,7 +11,7 @@ struct map
     char sym;
 };
 
-static struct map AT_IRAM kmap[] =
+static struct map kmap[] =
 {
     { PS2_A,		'A' },
     { PS2_B,		'B' },

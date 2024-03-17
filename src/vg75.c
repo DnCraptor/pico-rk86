@@ -392,139 +392,106 @@ void vg75_init(uint8_t *vram)
 }
 
 
-void vg75_overlay(const char *str)
-{
+void vg75_overlay(const char *str) {
     uint8_t l = strlen(str);
     uint8_t p = 0;
     
     // Пустое место слева
     while (p < (64-l)/2)
-	screen.overlay[p++]=0;
+		screen.overlay[p++]=0;
     
     // Сама строка посередине
     while (*str)
-	screen.overlay[p++]=r_u8(&xlat[(uint8_t)*str++]);
+		screen.overlay[p++]=r_u8(&xlat[(uint8_t)*str++]);
     
     // Пустое место справа
     while (p < 64)
-	screen.overlay[p++]=0;
+		screen.overlay[p++]=0;
     
     // Таймер на 1 секунду
     screen.overlay_timer=50;	// 50 полей - 1 секунда
 }
 
-
-void vg75_W(uint8_t A, uint8_t value)
-{
-    if (A)
-    {
-	// Команда
-	vg75.cmd=value;
-	vg75.param_n=0;
-	
-	if ( (value & 0xE0) == 0x20 )
-	{
-	    // Включение/отключение дисплея
-	    if ( ((value>>2) & 0x07) != 0 )
-	    {
-		// Включить
-		screen.dma_burst=(1 << (value & 0x03));
-		//ets_printf("VG75: start display dma_burst=%d\n", screen.dma_burst);
-		sreg|=SREG_VE;
-	    } else
-	    {
-		// Отключить
-		//ets_printf("VG75: stop display\n");
-		sreg&=~SREG_VE;
-	    }
-	} else
-	if (value == 0xA0)
-	{
-	    // Разрешить прерывания
-	    //ets_printf("VG75: int enable\n");
-	    sreg|=SREG_IE;
-	} else
-	if (value == 0xC0)
-	{
-	    // Запретить прерывания
-	    //ets_printf("VG75: int disable\n");
-	    sreg&=~SREG_IE;
-	}
-    } else
-    {
-	// Параметр
-	vg75.param[vg75.param_n & 0x03]=value;
-	vg75.param_n++;
-	
-	if ( (vg75.cmd==0x00) && (vg75.param_n==4) )
-	{
-	    // Сброс
-	    screen.screen_w=(vg75.param[0] & 0x7F)+1;	// число символов в строке -1
-	    screen.screen_h=(vg75.param[1] & 0x3F)+1;	// число строк на экране -1
-	    screen.underline_y=(vg75.param[2] >> 4);	// позиция подчеркивания
-	    screen.char_h=(vg75.param[2] & 0x0F)+1;	// высота символа в пикселах -1
-	    screen.cursor_type=(vg75.param[3] >> 4) & 0x03;	// форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
-	    screen.attr_visible=((vg75.param[3] & 0x40) != 0);	// видимость аттрибутов (если 1, то аттрибут будет отображен пустым местом, если 0 - будет пропущен)
-	    //ets_printf("VG75: W=%d H=%d CH=%d CUR=%d\n", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);
-	    if (screen.screen_w > 100) screen.screen_w=100;
-	    //if (screen.screen_h > 38) screen.screen_h=38;
-	} else
-	if ( (vg75.cmd==0x80) && (vg75.param_n==2) )
-	{
-	    // Загрузить курсор
-	    screen.cursor_x=vg75.param[0];
-	    screen.cursor_y=vg75.param[1];
-	    //ets_printf("VG75: cursor=%d,%d\n", screen.cursor_x, screen.cursor_y);
-	}
+void vg75_W(uint8_t A, uint8_t value) {
+    if (A) {
+		// Команда
+		vg75.cmd = value;
+		vg75.param_n = 0;
+		if ( (value & 0xE0) == 0x20 ) {
+	    	// Включение/отключение дисплея
+	    	if ( ((value>>2) & 0x07) != 0 ) {
+				// Включить
+				screen.dma_burst = (1 << (value & 0x03));
+				ets_printf("VG75: start display dma_burst=%d\n", screen.dma_burst);
+				sreg |= SREG_VE;
+	    	} else {
+				// Отключить
+				ets_printf("VG75: stop display\n");
+				sreg &= ~SREG_VE;
+	    	}
+		} else if (value == 0xA0) {
+	    	// Разрешить прерывания
+	    	ets_printf("VG75: int enable\n");
+	   		sreg |= SREG_IE;
+		} else if (value == 0xC0) {
+	    	// Запретить прерывания
+	    	ets_printf("VG75: int disable\n");
+	    	sreg &= ~SREG_IE;
+		}
+    } else {
+		// Параметр
+		vg75.param[vg75.param_n & 0x03] = value;
+		vg75.param_n++;
+		if ( (vg75.cmd==0x00) && (vg75.param_n==4) ) {
+	    	// Сброс
+	    	screen.screen_w=(vg75.param[0] & 0x7F) + 1;	// число символов в строке -1
+	    	screen.screen_h=(vg75.param[1] & 0x3F) + 1;	// число строк на экране -1
+	    	screen.underline_y=(vg75.param[2] >> 4);	// позиция подчеркивания
+	    	screen.char_h=(vg75.param[2] & 0x0F) + 1;	// высота символа в пикселах -1
+	    	screen.cursor_type=(vg75.param[3] >> 4) & 0x03;	// форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
+	    	screen.attr_visible=((vg75.param[3] & 0x40) != 0);	// видимость аттрибутов (если 1, то аттрибут будет отображен пустым местом, если 0 - будет пропущен)
+	    	ets_printf("VG75: W=%d H=%d CH=%d CUR=%d\n", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);
+	    	if (screen.screen_w > 100) screen.screen_w = 100;
+	    	//if (screen.screen_h > 38) screen.screen_h=38;
+		} else if ( (vg75.cmd==0x80) && (vg75.param_n==2) ) {
+	    	// Загрузить курсор
+	    	screen.cursor_x=vg75.param[0];
+	    	screen.cursor_y=vg75.param[1];
+	    	ets_printf("VG75: cursor=%d,%d\n", screen.cursor_x, screen.cursor_y);
+		}
     }
 }
 
-
-uint8_t vg75_R(uint8_t A)
-{
-    if (A)
-    {
-	// SREG
-	uint8_t value=sreg;
-	
-	// Сбрасываем биты, которые должны сброситься при чтении
-	sreg&=~(SREG_IR | SREG_LP | SREG_IC | SREG_DU | SREG_FO);
-	
-	return value;
-    } else
-    {
+uint8_t vg75_R(uint8_t A) {
+    if (A) {
+		// SREG
+		uint8_t value = sreg;
+		// Сбрасываем биты, которые должны сброситься при чтении
+		sreg &= ~(SREG_IR | SREG_LP | SREG_IC | SREG_DU | SREG_FO);
+		return value;
+    }
 	// PREG
 	return 0x00;
+}
+
+void ik57_W(uint8_t A, uint8_t value) {
+    ets_printf("IK57: W(%d, 0x%02X)", A, value);
+    if (A==0x08) {
+		// Запись в РгР
+		ik57.param_n = 0;
+		dma_on=((value & 0x04) != 0);	// флаг включенности канала 2
+    } else if ( (A==0x04) || (A==0x05) ) {
+		ik57.param[ik57.param_n++] = value;
+		if (ik57.param_n == 4) {
+	    	uint16_t vram_at=(ik57.param[1] << 8) | ik57.param[0];
+	    	ets_printf("IK57: VRAM @%04x", vram_at);
+	   		screen.vram=i8080_hal_memory()+vram_at;
+	    	graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
+	    	ik57.param_n=0;
+		}
     }
 }
 
-
-void ik57_W(uint8_t A, uint8_t value)
-{
-    //ets_printf("IK57: W(%d, 0x%02X)\n", A, value);
-    if (A==0x08)
-    {
-	// Запись в РгР
-	ik57.param_n=0;
-	dma_on=((value & 0x04) != 0);	// флаг включенности канала 2
-    } else
-    if ( (A==0x04) || (A==0x05) )
-    {
-	ik57.param[ik57.param_n++]=value;
-	
-	if (ik57.param_n==4)
-	{
-	    uint16_t vram_at=(ik57.param[1] << 8) | ik57.param[0];
-	    //ets_printf("IK57: VRAM @%04x\n", vram_at);
-	    screen.vram=i8080_hal_memory()+vram_at;
-	    graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
-	    ik57.param_n=0;
-	}
-    }
-}
-
-
-uint8_t ik57_R(uint8_t A)
-{
+uint8_t ik57_R(uint8_t A) {
     return 0x00;
 }

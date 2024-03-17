@@ -15,7 +15,7 @@ struct kmap
 
 
 // Раскладка для символов с нажатым Shift (где установлен RK_SS надо отжать СС)
-static const struct kmap AT_IRAM kb_shift[]=
+static const struct kmap kb_shift[]=
 {
     { PS2_EQUALS,	RK_SEMICOLON	},	// '+' (Shift + '=' => СС + ';')
     { PS2_QUOTE,	RK_2		},	// '"' (Shift + ''' => CC + '2')
@@ -34,7 +34,7 @@ static const struct kmap AT_IRAM kb_shift[]=
 
 
 // Раскладка для русских букв (включен РУС без СС или ЛАТ с СС)
-static const struct kmap AT_IRAM kb_rus[]=
+static const struct kmap kb_rus[]=
 {
     { PS2_Q,		RK_J		},	// 'Й'
     { PS2_W,		RK_C		},	// 'Ц'
@@ -76,7 +76,7 @@ static const struct kmap AT_IRAM kb_rus[]=
 
 
 // Остальная раскладка (в т.ч. и ЛАТ)
-static const struct kmap AT_IRAM kb_lat[]=
+static const struct kmap kb_lat[]=
 {
     // Ряд 1
     { PS2_SEMICOLON,	RK_SEMICOLON		},	// ';'

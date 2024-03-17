@@ -13,7 +13,7 @@ extern "C" {
 extern int i8080_hal_memory_read_word(int addr);
 extern void i8080_hal_memory_write_word(int addr, int word);
 
-extern int i8080_hal_memory_read_byte(int addr);
+extern uint8_t i8080_hal_memory_read_byte(int addr);
 extern void i8080_hal_memory_write_byte(int addr, int byte);
 
 extern int i8080_hal_io_input(int port);

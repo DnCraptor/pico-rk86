@@ -6,7 +6,7 @@
 
 
 extern uint8_t zkg[4][1024];
-extern const uint8_t zkg_rom[1024];	// AT_IRAM
+extern const uint8_t zkg_rom[1024];
 
 
 #endif

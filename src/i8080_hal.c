@@ -34,10 +34,11 @@ void i8080_hal_memory_write_word(int addr, int word) {
     i8080_hal_memory_write_byte(addr + 1, (word >> 8) & 0xff);
 }
 
-int i8080_hal_memory_read_byte(int addr) {
+uint8_t i8080_hal_memory_read_byte(int addr) {
+	//printf("i8080_hal_memory_read_byte %ph", addr);
     if ( (addr & 0x8000) == 0 ) {
 		// ОЗУ
-	//	printf("i8080_hal_memory_read_byte RAM[%04Xh] %02Xh", addr, RAM[addr & 0x7fff]);
+	//	printf("i8080_hal_memory_read_byte RAM[%04Xh] %02Xh", addr & 0x7fff, RAM[addr & 0x7fff]);
 		return RAM[addr & 0x7fff];
     } else {
 		// Переферия/ПЗУ
@@ -68,10 +69,10 @@ int i8080_hal_memory_read_byte(int addr) {
 	    	return ROM[addr & 0x1FFF];
 	    case 0xF:
 			if (addr < 0x8F00) {
-		//		printf("i8080_hal_memory_read_byte ROM[%04Xh] %02Xh", addr & 0x1FFF, ROM[addr & 0x1FFF]);
+//printf("i8080_hal_memory_read_byte ROM[%04Xh] %02Xh", addr & 0x1FFF, ROM[addr & 0x1FFF]);
 				return ROM[addr & 0x1FFF];
 			}
-		//	printf("i8080_hal_memory_read_byte ROM_F800[%04Xh] %02Xh", addr, ROM_F800[addr - 0xF800]);
+		//	printf("i8080_hal_memory_read_byte ROM_F800[%04Xh] %02Xh", addr - 0xF800, ROM_F800[addr - 0xF800]);
 	    	return ROM_F800[addr - 0xF800];
 	    default:
 			return 0x00;
