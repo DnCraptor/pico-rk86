@@ -137,7 +137,7 @@ int i8080_hal_io_input(int port) {
 }
 
 void i8080_hal_io_output(int port, int value) {
-	// TODO: ??
+	printf("i8080_hal_io_output ignored");
 }
 
 void i8080_hal_iff(int on) {
