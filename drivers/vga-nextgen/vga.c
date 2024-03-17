@@ -137,13 +137,13 @@ void __time_critical_func() dma_handler_VGA() {
             uint32_t glyph_line = screen_line % font_height;
 
             //указатель откуда начать считывать символы
-            uint8_t* text_buffer_line = &text_buffer[screen_line / font_height * text_buffer_width * 2];
+            uint8_t* text_buffer_line = &text_buffer[screen_line / font_height * text_buffer_width];
 
             for (int x = 0; x < text_buffer_width; x++) {
                 //из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = font_8x16[*text_buffer_line++ * font_height + glyph_line];
                 //считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
-                uint16_t* color = &txt_palette_fast[*text_buffer_line++ * 4];
+                uint16_t* color = &txt_palette_fast[8];
 #if 0
                 if (cursor_blink_state && !manager_started &&
                     (screen_line / 16 == CURSOR_Y && x == CURSOR_X && glyph_line >= 11 && glyph_line <= 13)) {
