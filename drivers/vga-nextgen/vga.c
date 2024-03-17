@@ -69,6 +69,7 @@ static uint16_t* txt_palette_fast = NULL;
 
 enum graphics_mode_t graphics_mode;
 
+void vg75_external_end_of_screen(void);
 
 void __time_critical_func() dma_handler_VGA() {
     dma_hw->ints0 = 1u << dma_chan_ctrl;
@@ -81,6 +82,7 @@ void __time_critical_func() dma_handler_VGA() {
         screen_line = 0;
         frame_number++;
         input_buffer = graphics_buffer;
+        vg75_external_end_of_screen();
     }
 
     if (screen_line >= N_lines_visible) {
@@ -331,6 +333,7 @@ void __time_critical_func() dma_handler_VGA() {
             break;
     }
     dma_channel_set_read_addr(dma_chan_ctrl, output_buffer, false);
+    
 }
 
 void graphics_set_mode(enum graphics_mode_t mode) {

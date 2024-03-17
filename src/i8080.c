@@ -1563,9 +1563,10 @@ static int i8080_execute(uint8_t opcode) {
             break;
         case 0xE6:            /* ani data8 */
             cpu_cycles = 7;
+            work16 = A;
             work8 = RD_BYTE(PC++);
             ANA(work8);
-            printf("%04X: %02X ANI A(%02X) &= %02Xh - Cf (%d)", PC_REF, A, work8, opcode, cpu_cycles);
+            printf("%04X: %02X ANI A(%02Xh) = A(%02Xh) & @PC(%02Xh) Zf(%d) (%d)", PC_REF, opcode, A, (uint8_t)work16, work8, Z_FLAG, cpu_cycles);
             break;
         case 0xE7:            /* rst 4 */
             cpu_cycles = 11;

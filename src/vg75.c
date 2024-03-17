@@ -10,13 +10,11 @@
 
 struct screen screen;
 
-
 static struct
 {
     uint8_t cmd, param_n;
     uint8_t param[4];
 } vg75;
-
 
 static struct
 {
@@ -56,16 +54,15 @@ static uint8_t dma_on=0;
 
 
 // Регистр статуса
-#define SREG_IE	0x40
-#define SREG_IR	0x20
-#define SREG_LP	0x10
-#define SREG_IC	0x08
-#define SREG_VE	0x04
-#define SREG_DU	0x02
-#define SREG_FO	0x01
+#define SREG_IE	0x40 // bit 6
+#define SREG_IR	0x20 // bit 5 // Последняя видимая строка - выставляем прерывание ВГ75
+#define SREG_LP	0x10 // bit 4
+#define SREG_IC	0x08 // bit 3
+#define SREG_VE	0x04 // bit 2
+#define SREG_DU	0x02 // bit 1
+#define SREG_FO	0x01 // bit 0
 
-static uint8_t sreg=0x00;
-
+static uint8_t sreg = 0x00;
 
 // Псевдографика
 #define PG_LEFT		0x01
@@ -310,6 +307,11 @@ static inline void render_line(uint8_t *data)
     }
 }
 
+void vg75_external_end_of_screen(void) {
+	line = 304;
+	sreg |= SREG_IR;
+}
+
 
 void tv_data_field(void)
 {
@@ -422,20 +424,20 @@ void vg75_W(uint8_t A, uint8_t value) {
 	    	if ( ((value>>2) & 0x07) != 0 ) {
 				// Включить
 				screen.dma_burst = (1 << (value & 0x03));
-				ets_printf("VG75: start display dma_burst=%d\n", screen.dma_burst);
+				ets_printf("VG75: start display dma_burst = %d", screen.dma_burst);
 				sreg |= SREG_VE;
 	    	} else {
 				// Отключить
-				ets_printf("VG75: stop display\n");
+				ets_printf("VG75: stop display");
 				sreg &= ~SREG_VE;
 	    	}
 		} else if (value == 0xA0) {
 	    	// Разрешить прерывания
-	    	ets_printf("VG75: int enable\n");
+	    	ets_printf("VG75: int enable");
 	   		sreg |= SREG_IE;
 		} else if (value == 0xC0) {
 	    	// Запретить прерывания
-	    	ets_printf("VG75: int disable\n");
+	    	ets_printf("VG75: int disable");
 	    	sreg &= ~SREG_IE;
 		}
     } else {
@@ -450,14 +452,14 @@ void vg75_W(uint8_t A, uint8_t value) {
 	    	screen.char_h=(vg75.param[2] & 0x0F) + 1;	// высота символа в пикселах -1
 	    	screen.cursor_type=(vg75.param[3] >> 4) & 0x03;	// форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
 	    	screen.attr_visible=((vg75.param[3] & 0x40) != 0);	// видимость аттрибутов (если 1, то аттрибут будет отображен пустым местом, если 0 - будет пропущен)
-	    	ets_printf("VG75: W=%d H=%d CH=%d CUR=%d\n", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);
+	    	ets_printf("VG75: W=%d H=%d CH=%d CUR=%d", screen.screen_w, screen.screen_h, screen.char_h, screen.cursor_type);
 	    	if (screen.screen_w > 100) screen.screen_w = 100;
 	    	//if (screen.screen_h > 38) screen.screen_h=38;
 		} else if ( (vg75.cmd==0x80) && (vg75.param_n==2) ) {
 	    	// Загрузить курсор
 	    	screen.cursor_x=vg75.param[0];
 	    	screen.cursor_y=vg75.param[1];
-	    	ets_printf("VG75: cursor=%d,%d\n", screen.cursor_x, screen.cursor_y);
+	    	ets_printf("VG75: cursor=%d,%d", screen.cursor_x, screen.cursor_y);
 		}
     }
 }
