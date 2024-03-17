@@ -221,16 +221,14 @@ int main() {
 
     // Инитим магнитофон
     tape_init();
-
     // Запускаем эмуляцию
     uint32_t prev_T = getCycleCount();
     uint32_t sec_T = prev_T;
     uint32_t cycles = 0, sec_cycles = 0;
     bool turbo = true, win = false;
-
+    graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
+    graphics_set_mode(TEXTMODE_DEFAULT); // TODO: dynamic W/H
     while(true) {
-        graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
-        graphics_set_mode(TEXTMODE_DEFAULT); // TODO: dynamic W/H
         uint32_t T = getCycleCount();
         int32_t dT = T - prev_T;
         if ( (dT > 0) || (turbo) ) {
@@ -250,7 +248,7 @@ int main() {
         }
         if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
-            printf("Speed: %d; rtc: %08Xh", sec_cycles, T);
+            printf("Speed: %d; rtc: %08Xh screen.vram: %ph", sec_cycles, T, RAM-screen.vram);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;

@@ -236,6 +236,7 @@ void ui_start(void)
     screen.cursor_y=99;
     screen.cursor_type=0;
     screen.vram=(uint8_t*)ui_scr;
+	graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
     screen.overlay_timer=0;
     
     // Очищаем экран

@@ -272,7 +272,7 @@ static uns8 work8;
 static int _index;
 static uns8 carry, add;
 
-uint8_t parity_table[] = {
+const uint8_t parity_table[] = {
     1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
     0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
     0, 1, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 1, 0,
@@ -291,8 +291,8 @@ uint8_t parity_table[] = {
     1, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1,
 };
 
-uint8_t half_carry_table[] = { 0, 0, 1, 0, 1, 0, 1, 1 };
-uint8_t sub_half_carry_table[] = { 0, 1, 1, 1, 0, 0, 0, 1 };
+const uint8_t half_carry_table[] = { 0, 0, 1, 0, 1, 0, 1, 1 };
+const uint8_t sub_half_carry_table[] = { 0, 1, 1, 1, 0, 0, 0, 1 };
 
 void i8080_init(void) {
     C_FLAG = 0;
@@ -347,7 +347,8 @@ static void i8080_retrieve_flags(void) {
 
 static int i8080_execute(int opcode) {
     int cpu_cycles;
-    switch (opcode) {
+//    printf("i8080_execute(%02Xh) @ %ph", opcode, PC);
+    switch ((uint8_t)opcode && 0xFF) {
         case 0x00:            /* nop */
         // Undocumented NOP.
         case 0x08:            /* nop */
@@ -1728,6 +1729,7 @@ static int i8080_execute(int opcode) {
             cpu_cycles = -1;  /* Shouldn't be really here. */
             break;
     }
+//   printf("i8080_execute(%02Xh) @ %ph cc: %d", opcode, PC, cpu_cycles);
     return cpu_cycles;
 }
 

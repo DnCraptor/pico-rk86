@@ -10,7 +10,7 @@
 #include <stdio.h>
 #include "hardware/pio.h"
 #include "pico/stdlib.h"
-#include "stdlib.h"
+#include "debug.h"
 
 uint16_t pio_program_VGA_instructions[] = {
     //     .wrap_target
@@ -345,7 +345,7 @@ void graphics_set_mode(enum graphics_mode_t mode) {
             text_buffer_width = 80;
             text_buffer_height = 30;
     }
-    memset(graphics_buffer, 0, graphics_buffer_height * graphics_buffer_width);
+    //memset(graphics_buffer, 0, graphics_buffer_height * graphics_buffer_width);
     if (_SM_VGA < 0) return; // если  VGA не инициализирована -
 
     graphics_mode = mode;

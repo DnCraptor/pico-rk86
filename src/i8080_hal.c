@@ -9,7 +9,17 @@
 #include "align4.h"
 #include "board.h"
 
-uint8_t RAM[0x8000], RAM2[0x2000], ROM[0x6000];
+// 0x0000..0x7FFF
+uint8_t RAM[0x8000];
+// 0x8000..0x9FFF // ВВ55 внутренняя
+
+// 0xA000..0xBFFF
+uint8_t RAM2[0x2000];
+// 0xCFFF..0xDFFF // ВГ75 + шрифты
+
+// 0xE000..0xF800
+uint8_t ROM[0x1800];
+
 uint32_t i8080_cycles;
 
 int i8080_hal_memory_read_word(int addr)
@@ -19,62 +29,55 @@ int i8080_hal_memory_read_word(int addr)
         i8080_hal_memory_read_byte(addr);
 }
 
-
-void i8080_hal_memory_write_word(int addr, int word)
-{
+void i8080_hal_memory_write_word(int addr, int word) {
     i8080_hal_memory_write_byte(addr, word & 0xff);
     i8080_hal_memory_write_byte(addr + 1, (word >> 8) & 0xff);
 }
 
-
-int i8080_hal_memory_read_byte(int addr)
-{
-    if ( (addr & 0x8000) == 0 )
-    {
-	// ОЗУ
-	return RAM[addr & 0x7fff];
-    } else
-    {
-	// Переферия/ПЗУ
-	switch ((addr >> 12) & 0x0f)
-	{
+int i8080_hal_memory_read_byte(int addr) {
+    if ( (addr & 0x8000) == 0 ) {
+		// ОЗУ
+	//	printf("i8080_hal_memory_read_byte RAM[%04Xh] %02Xh", addr, RAM[addr & 0x7fff]);
+		return RAM[addr & 0x7fff];
+    } else {
+		// Переферия/ПЗУ
+		switch ((addr >> 12) & 0x0f) {
 	    case 0x8:
 	    case 0x9:
-		// ВВ55 внутренняя
-		return vv55_i_R(addr & 0x03);
-	    
+			// ВВ55 внутренняя
+			return vv55_i_R(addr & 0x03);
 	    case 0xA:
 	    case 0xB:
-		// Доп.ОЗУ вместо ВВ55
-		return RAM2[addr & 0x1FFF];
-	    
+			// Доп.ОЗУ вместо ВВ55
+			return RAM2[addr & 0x1FFF];
 	    case 0xC:
 	    case 0xD:
-		// ВГ75 + шрифты
-		if (addr & (1 << 10))	// A10 - переключатель ВГ75/шрифт
-		{
-		    // Шрифт (A12,A11 - номер шрифта)
-		    uint8_t n=(addr >> 11) & 0x03;
-		    addr&=0x3FF;
-		    addr=((addr & 0x07) << 7) | (addr >> 3);	// меняем адресацию
-		    return zkg[n][addr] ^ 0xFF;
-		} else
-		{
+			// ВГ75 + шрифты
+			if (addr & (1 << 10))	// A10 - переключатель ВГ75/шрифт
+			{
+		    	// Шрифт (A12,A11 - номер шрифта)
+		    	uint8_t n=(addr >> 11) & 0x03;
+		    	addr&=0x3FF;
+		    	addr=((addr & 0x07) << 7) | (addr >> 3);	// меняем адресацию
+		    	return zkg[n][addr] ^ 0xFF;
+			}
 		    // ВГ75
 		    return vg75_R(addr & 1);
-		}
-	    
 	    case 0xE:
+    		// ПЗУ? вместо ИК57 (ИК57 никто не читает)
+	    	return ROM[addr & 0x1FFF];
 	    case 0xF:
-		// ПЗУ вместо ИК57 (ИК57 никто не читает)
-		return r_u8(&ROM[addr & 0x1FFF]);
-	    
+			if (addr < 0x8F00) {
+		//		printf("i8080_hal_memory_read_byte ROM[%04Xh] %02Xh", addr & 0x1FFF, ROM[addr & 0x1FFF]);
+				return ROM[addr & 0x1FFF];
+			}
+		//	printf("i8080_hal_memory_read_byte ROM_F800[%04Xh] %02Xh", addr, ROM_F800[addr - 0xF800]);
+	    	return ROM_F800[addr - 0xF800];
 	    default:
-		return 0x00;
-	}
+			return 0x00;
+		}
     }
 }
-
 
 void i8080_hal_memory_write_byte(int addr, int byte)
 {
@@ -151,11 +154,10 @@ unsigned char* i8080_hal_rom(void) {
 
 void i8080_hal_init(void) {
     // Инитим ОЗУ
-    ets_memset(RAM, 0x00, sizeof(RAM));
-    ets_memset(RAM2, 0x00, sizeof(RAM2));
+    ets_memset(RAM, 0x00, sizeof(RAM));   // 0x0000..0x7FFF
+    ets_memset(RAM2, 0x00, sizeof(RAM2)); // 0xA000..0xBFFF
     
     // Инитим ПЗУ
-    ets_memset(ROM + 0x0000, 0xFF, 0x1800);
-    ets_memcpy(ROM + 0x1800, ROM_F800, sizeof(ROM_F800)); // 0x8000);
-    ets_memset(ROM + 0x1800 + sizeof(ROM_F800), 0xFF, sizeof(ROM) - 0x1800 - sizeof(ROM_F800));
+    ets_memset(ROM, 0xFF, sizeof(ROM)); // 0xE000..0xF800
+  ///  ets_memcpy(ROM + 0x1800, ROM_F800, sizeof(ROM_F800)); // 0xF800..0xFFFF
 }
