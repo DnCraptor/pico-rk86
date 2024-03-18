@@ -130,15 +130,16 @@ void __time_critical_func() dma_handler_VGA() {
         case TEXTMODE_160x100:
         case TEXTMODE_53x30:
         case TEXTMODE_DEFAULT: {
+            if (screen_line % 2) return;
             uint16_t* output_buffer_16bit = (uint16_t *)*output_buffer;
             output_buffer_16bit += shift_picture / 2;
            	// Видимая линия
-            uint16_t l = screen_line & 7;
+            uint16_t l = (screen_line >> 1) & 7;
         	const uint8_t* z = zkg[0] + (l << 7);
             //указатель откуда начать считывать символы
-            uint8_t* text_buffer_line = &text_buffer[screen_line / 8 * text_buffer_width];
+            uint8_t* text_buffer_line = &text_buffer[(screen_line >> 4) * text_buffer_width];
             //считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
-            uint16_t* color = &txt_palette_fast[11]; // 8 GREEN on BLACK
+            uint16_t* color = &txt_palette_fast[8]; // 8 GREEN on BLACK (11 наоборот)
             for (int x = 0; x < text_buffer_width; x++) {
                 //из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = z[*text_buffer_line++];
@@ -159,9 +160,13 @@ void __time_critical_func() dma_handler_VGA() {
                 else
 #endif
                 {
+                    *output_buffer_16bit++ = color[(glyph_pixels >> 7) & 1];
                     *output_buffer_16bit++ = color[(glyph_pixels >> 6) & 1];
+                    *output_buffer_16bit++ = color[(glyph_pixels >> 5) & 1];
                     *output_buffer_16bit++ = color[(glyph_pixels >> 4) & 1];
+                    *output_buffer_16bit++ = color[(glyph_pixels >> 3) & 1];
                     *output_buffer_16bit++ = color[(glyph_pixels >> 2) & 1];
+                    *output_buffer_16bit++ = color[(glyph_pixels >> 1) & 1];
                     *output_buffer_16bit++ = color[glyph_pixels & 1];
                 }
             }
