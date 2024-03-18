@@ -383,7 +383,7 @@ void vg75_init(uint8_t *vram)
     txt=vram;
     
     // Копируем в буфера пустую строку (в ней синхра)
-    for (i=0; i<N_BUFS; i++)
+    for (i = 0; i < N_BUFS; i++)
 	ets_memcpy(buf[i], tv_empty_line, 64);
     
     // Инитим знакогенератор в ОЗУ
