@@ -382,13 +382,14 @@ void keyboard_init(void) {
     return;
 }
 
-extern uint16_t portram[256];
+//extern uint16_t portram[256];
 
 extern void doirq(uint8_t irqnum);
 
 extern bool handleScancode(uint32_t ps2scancode);
 
 void ps2poll() {
+#if 0
     uint32_t ps2scancode = ps2getcode();
     if (!ps2scancode) {
         return;
@@ -397,7 +398,7 @@ void ps2poll() {
     if (handleScancode(ps2scancode)) {
         return;
     }
-#if 0
+
     portram[0x60] = ps2scancode;
     // char tmp[20]; sprintf(tmp, "sc: 0x%X", ps2scancode); logMsg(tmp);
     portram[0x64] |= 2;

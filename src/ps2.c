@@ -143,7 +143,9 @@ void ps2_init(void)
 uint32_t ps2get_raw_code(); // TODO: remap?
 
 uint16_t ps2_read(void) {
-	return (uint16_t)ps2get_raw_code() & 0xFFFF;
+	uint16_t w = (uint16_t)ps2get_raw_code() & 0xFFFF;
+	if (w) printf("ps2_read: %04Xh", w);
+	return w;
 /***    if (rxq_head == rxq_tail) return 0;
     uint16_t d=rxq[rxq_tail];
     rxq_tail=(rxq_tail + 1) & (RXQ_SIZE-1);

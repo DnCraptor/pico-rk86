@@ -50,14 +50,6 @@ void inInit(uint gpio) {
     gpio_pull_up(gpio);
 }
 
-extern "C" {
-bool __time_critical_func(handleScancode)(const uint32_t ps2scancode) {
- 
-    return true;
-}
-}
-
-
 void nespad_update() {
  
 }
@@ -248,7 +240,7 @@ int main() {
         }
         if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
-            printf("Speed: %d; rtc: %08Xh screen.vram: %ph", sec_cycles, T, RAM-screen.vram);
+            printf("Speed: %d; screen.vram: %04Xh", sec_cycles, screen.vram - RAM);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;
@@ -267,28 +259,33 @@ int main() {
 	        // Win нажата - обрабатываем спец-команды
 	        uint16_t c = ps2_read();
 	        switch (c) {
-		    case PS2_LEFT:
-		        // Экран влево
-		        if (screen.x_offset > 0) screen.x_offset--;
-		        break;
-		    case PS2_RIGHT:
-		        // Экран вправо
-		        if (screen.x_offset < 16) screen.x_offset++;
-		        break;
-		    case PS2_UP:
-		        // Экран вверх
-		        if (screen.y_offset > 8) screen.y_offset -= 8;
-                else screen.y_offset = 0;
-		        break;
-		    case PS2_DOWN:
-		        // Экран вниз
-		        if (screen.y_offset < 8 * 8) screen.y_offset += 8;
-		        break;
-		    case PS2_L_WIN | 0x8000:
-		    case PS2_R_WIN | 0x8000:
-		        // Отжали Win
-		        win = false;
-		        break;
+                case 0:
+                    break;
+		        case PS2_LEFT:
+		            // Экран влево
+		            if (screen.x_offset > 0) screen.x_offset--;
+		            break;
+		        case PS2_RIGHT:
+		            // Экран вправо
+		            if (screen.x_offset < 16) screen.x_offset++;
+		            break;
+		        case PS2_UP:
+		            // Экран вверх
+		            if (screen.y_offset > 8) screen.y_offset -= 8;
+                    else screen.y_offset = 0;
+		            break;
+		        case PS2_DOWN:
+		            // Экран вниз
+		            if (screen.y_offset < 8 * 8) screen.y_offset += 8;
+		            break;
+		        case PS2_L_WIN | 0x8000:
+		        case PS2_R_WIN | 0x8000:
+		            // Отжали Win
+		            win = false;
+		            break;
+        		default:
+		            printf("Unprocessed scancode (in win): %04Xh", c);
+		            break;
 	        }
 	    } else {
 	        // Win не нажата
@@ -366,7 +363,7 @@ int main() {
 	        	/// TODO:    help_display();
 		            break;
         		default:
-		            ets_printf("PS2: %04X\n", c);
+		            printf("Unprocessed scancode: %04Xh", c);
 		            break;
     	    }
     	    if (rst) {
