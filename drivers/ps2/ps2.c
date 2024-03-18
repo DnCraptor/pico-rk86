@@ -16,8 +16,6 @@ uint8_t led_status = 0b000;
 
 volatile int16_t ps2_error = PS2_ERR_NONE;
 
-void ps2poll();
-
 static void clock_lo(void) {
     gpio_set_dir(KBD_CLOCK_PIN, GPIO_OUT);
     gpio_put(KBD_CLOCK_PIN, 0);
@@ -299,7 +297,6 @@ uint32_t ps2getcode() {
     ps2bufsize -= len;
 
     // NUMLOCK
-
     switch (retval) {
         case 0x45:
             keyboard_toggle_led(PS2_LED_NUM_LOCK);
@@ -319,7 +316,6 @@ void KeyboardHandler(void) {
     static uint32_t prev_ms = 0;
     uint32_t now_ms;
     uint8_t n, val;
-
     val = gpio_get(KBD_DATA_PIN);
     now_ms = time_us_64();
     if (now_ms - prev_ms > 250) {
@@ -335,7 +331,6 @@ void KeyboardHandler(void) {
     if (bitcount == 11) {
         if (ps2bufsize < KBD_BUFFER_SIZE) {
             ps2buffer[ps2bufsize++] = incoming;
-            ps2poll();
         }
         bitcount = 0;
         incoming = 0;
@@ -346,7 +341,6 @@ void KeyboardHandler(void) {
 void keyboard_init(void) {
     bitcount = 0;
     memset(ps2buffer, 0, KBD_BUFFER_SIZE);
-
     gpio_init(KBD_CLOCK_PIN);
     gpio_init(KBD_DATA_PIN);
     gpio_disable_pulls(KBD_CLOCK_PIN);
@@ -355,53 +349,8 @@ void keyboard_init(void) {
     gpio_set_drive_strength(KBD_DATA_PIN, GPIO_DRIVE_STRENGTH_12MA);
     gpio_set_dir(KBD_CLOCK_PIN, GPIO_IN);
     gpio_set_dir(KBD_DATA_PIN, GPIO_IN);
-
-    gpio_set_irq_enabled_with_callback(KBD_CLOCK_PIN, GPIO_IRQ_EDGE_FALL, true,
-                                       (gpio_irq_callback_t)&KeyboardHandler); //
-
-    // Blink all 3 leds
-    //ps2_send(0xFF); //Reset and start self-test
-    //sleep_ms(400); // Why so long?
-
-    //ps2_send(0xF2); // Get keyvoard id https://wiki.osdev.org/PS/2_Keyboard
-    //sleep_ms(250);
-
-    /*
-    ps2_send(0xED);
-    sleep_ms(50);
-    ps2_send(2); // NUM
-
-    ps2_send(0xED);
-    sleep_ms(50);
-    ps2_send(3); // SCROLL
-*/
-    /*    ps2_send(0xED);
-        sleep_ms(50);
-        ps2_send(7);*/
-
+    gpio_set_irq_enabled_with_callback(KBD_CLOCK_PIN, GPIO_IRQ_EDGE_FALL, true, (gpio_irq_callback_t)&KeyboardHandler);
     return;
 }
 
-//extern uint16_t portram[256];
 
-extern void doirq(uint8_t irqnum);
-
-extern bool handleScancode(uint32_t ps2scancode);
-
-void ps2poll() {
-#if 0
-    uint32_t ps2scancode = ps2getcode();
-    if (!ps2scancode) {
-        return;
-    }
-
-    if (handleScancode(ps2scancode)) {
-        return;
-    }
-
-    portram[0x60] = ps2scancode;
-    // char tmp[20]; sprintf(tmp, "sc: 0x%X", ps2scancode); logMsg(tmp);
-    portram[0x64] |= 2;
-    doirq(1);
-#endif
-}

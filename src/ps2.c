@@ -123,8 +123,7 @@ static void gpio_int(void *arg)
 }
 
 
-void ps2_init(void)
-{
+void ps2_init(void) {
     // Переключаем PS2_DATA и PS2_CLK в GPIO
     gpio_init_input_pu(PS2_DATA);
     gpio_init_input_pu(PS2_CLK);
@@ -144,25 +143,16 @@ uint32_t ps2get_raw_code(); // TODO: remap?
 
 uint16_t ps2_read(void) {
 	uint16_t w = (uint16_t)ps2get_raw_code() & 0xFFFF;
+	if (w & 0xF000) w = (w & ~0xF000) | 0x100;
 	if (w) printf("ps2_read: %04Xh", w);
 	return w;
-/***    if (rxq_head == rxq_tail) return 0;
-    uint16_t d=rxq[rxq_tail];
-    rxq_tail=(rxq_tail + 1) & (RXQ_SIZE-1);
-    //ets_printf("PS2: 0x%04X\n", d);
-    led_status^=0x02;
-    return d;*/
 }
 
-
-void ps2_leds(bool caps, bool num, bool scroll)
-{
+void ps2_leds(bool caps, bool num, bool scroll) {
     led_status=(caps ? 0x04 : 0x00) | (num ? 0x02 : 0x00) | (scroll ? 0x01 : 0x00);
 }
 
-
-static void start_tx(uint8_t b)
-{
+static void start_tx(uint8_t b) {
     uint8_t p=b;
     p^=p >> 4;
     p^=p >> 2;
