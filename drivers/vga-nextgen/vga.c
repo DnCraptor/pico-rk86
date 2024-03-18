@@ -138,7 +138,7 @@ void __time_critical_func() dma_handler_VGA() {
             //указатель откуда начать считывать символы
             uint8_t* text_buffer_line = &text_buffer[screen_line / 8 * text_buffer_width];
             //считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
-            uint16_t* color = &txt_palette_fast[8]; // GREEN on BLACK
+            uint16_t* color = &txt_palette_fast[11]; // 8 GREEN on BLACK
             for (int x = 0; x < text_buffer_width; x++) {
                 //из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = z[*text_buffer_line++];
@@ -159,10 +159,10 @@ void __time_critical_func() dma_handler_VGA() {
                 else
 #endif
                 {
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 6) & 3];
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 4) & 3];
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 2) & 3];
-                    *output_buffer_16bit++ = color[glyph_pixels & 3];
+                    *output_buffer_16bit++ = color[(glyph_pixels >> 6) & 1];
+                    *output_buffer_16bit++ = color[(glyph_pixels >> 4) & 1];
+                    *output_buffer_16bit++ = color[(glyph_pixels >> 2) & 1];
+                    *output_buffer_16bit++ = color[glyph_pixels & 1];
                 }
             }
             dma_channel_set_read_addr(dma_chan_ctrl, output_buffer, false);
