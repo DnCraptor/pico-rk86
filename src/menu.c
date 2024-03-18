@@ -86,18 +86,18 @@ again:
 	);
     ui_draw_text(10, 16,
 		"Keyboard mapping:\n"
-		"Ф1-Ф4   - F1-F4          BK  - Enter\n"
-		"АР2     - Alt            ПС  - Доп. Enter\n"
-		"РУС/ЛАТ - Caps Lock      3Б  - Backspace\n"
-		"УС      - CTRL           \\   - Home\n"
-		"СС      - Shift          CTP - End/Delete\n"
+		"F1-F4   - F1-F4          BK  - Enter\n"
+		"AR2     - Alt            PC  - Доп. Enter\n"
+		"RUS/LAT - Caps Lock      3B  - Backspace\n"
+		"YC      - CTRL           \\   - Home\n"
+		"CC      - Shift          CTP - End/Delete\n"
 	"\n"
 	"\n"
-	"Управление эмуляцией:\n"
-	"F5-F10      - Вызов ПЗУ E000+n*4\n"
-	"Scroll Lock - Турбо режим\n"
-	"WIN+Курсор  - Сдвиг изображения\n"
-	"MENU        - Справка по Радио-86РК\n"
+	"Emulation Management:\n"
+	"F5-F10      - Call ROM E000+n*4\n"
+	"Scroll Lock - Turbo mode ON/OFF\n"
+	"WIN+Cursor  - Shift screen\n"
+	"MENU        - Help about Radio-86RK\n"
 	);
     xsprintf(str, "RK8266 for ZX Mulmulator");
     ui_draw_text(64+6-ets_strlen(str), 33, str);

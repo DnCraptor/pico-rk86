@@ -127,6 +127,7 @@ void __time_critical_func() dma_handler_VGA() {
             if (screen_line % 2) return;
             uint16_t* output_buffer_16bit = (uint16_t *)*output_buffer;
             output_buffer_16bit += shift_picture / 2;
+            uint8_t* output_buffer_8bit = (uint8_t*)output_buffer_16bit;
            	// Видимая линия
             uint16_t l = (screen_line >> 1) & 7;
         	const uint8_t* z = zkg[0] + (l << 7);
@@ -140,23 +141,23 @@ void __time_critical_func() dma_handler_VGA() {
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
                 if (screen.cursor_type &&
                     (screen_line >> 4) == screen.cursor_y && x == screen.cursor_x && l >= 7 && l <= 8) {
-                    *output_buffer_16bit++ = color[1];
-                    *output_buffer_16bit++ = color[1];
-                    *output_buffer_16bit++ = color[1];
-                    *output_buffer_16bit++ = color[1];
-                    *output_buffer_16bit++ = color[1];
-                    *output_buffer_16bit++ = color[1];
-                    *output_buffer_16bit++ = color[1];
-                    *output_buffer_16bit++ = color[1];
+                    *output_buffer_8bit++ = color[1];
+                    *output_buffer_8bit++ = color[1];
+                    *output_buffer_8bit++ = color[1];
+                    *output_buffer_8bit++ = color[1];
+                    *output_buffer_8bit++ = color[1];
+                    *output_buffer_8bit++ = color[1];
+                    *output_buffer_8bit++ = color[1];
+                    *output_buffer_8bit++ = color[1];
                 } else {
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 7) & 1];
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 6) & 1];
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 5) & 1];
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 4) & 1];
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 3) & 1];
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 2) & 1];
-                    *output_buffer_16bit++ = color[(glyph_pixels >> 1) & 1];
-                    *output_buffer_16bit++ = color[glyph_pixels & 1];
+                    *output_buffer_8bit++ = color[(glyph_pixels >> 7) & 1];
+                    *output_buffer_8bit++ = color[(glyph_pixels >> 6) & 1];
+                    *output_buffer_8bit++ = color[(glyph_pixels >> 5) & 1];
+                    *output_buffer_8bit++ = color[(glyph_pixels >> 4) & 1];
+                    *output_buffer_8bit++ = color[(glyph_pixels >> 3) & 1];
+                    *output_buffer_8bit++ = color[(glyph_pixels >> 2) & 1];
+                    *output_buffer_8bit++ = color[(glyph_pixels >> 1) & 1];
+                    *output_buffer_8bit++ = color[glyph_pixels & 1];
                 }
             }
             dma_channel_set_read_addr(dma_chan_ctrl, output_buffer, false);
