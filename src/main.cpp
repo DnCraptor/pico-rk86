@@ -142,8 +142,8 @@ inline static void init_wii() {
 }
 
 // Отношение частоты RP2040 к частоте эмуляции
-static const uint32_t freq = 160 * KHZ;
-volatile uint8_t i8080_speed_K = 90;	// 160 / 1.78
+static const uint32_t freq = 366 * KHZ; // 160
+volatile uint8_t i8080_speed_K = 206;	// 160 / 1.78
 
 int main() {
     hw_set_bits(&vreg_and_chip_reset_hw->vreg, VREG_AND_CHIP_RESET_VREG_VSEL_BITS);
