@@ -459,7 +459,7 @@ void vg75_W(uint8_t A, uint8_t value) {
 	    	// Загрузить курсор
 	    	screen.cursor_x=vg75.param[0];
 	    	screen.cursor_y=vg75.param[1];
-	    	ets_printf("VG75: cursor=%d,%d", screen.cursor_x, screen.cursor_y);
+	    	//ets_printf("VG75: cursor=%d,%d", screen.cursor_x, screen.cursor_y);
 		}
     }
 }

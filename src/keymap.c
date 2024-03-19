@@ -177,10 +177,9 @@ static uint16_t map_mask = 0;
 extern void rk_2_at(uint16_t rk, uint16_t at);
 extern uint16_t rk_by_at(uint16_t at);
 
-static PT_THREAD(handle_code(struct pt *pt)) {
+static void handle_code() {
     static uint32_t _sleep;
     static uint16_t c, r;
-    PT_BEGIN(pt);
 	r = rk_by_at((code | map_mask) & 0x7FFF);
     printf("r: %04Xh", r);
     if (r & RK_SS) {
@@ -194,14 +193,13 @@ static PT_THREAD(handle_code(struct pt *pt)) {
         } else {
 	        // Эмуляция нажатия/отжатия СС + кнопка
 	        if (! (code & 0x8000)) {
-#define KEY_T	50
 	            // Меняем состояние СС
 	            if (kbd_ss()) kbd_release(RK_SS);
                 else kbd_press(RK_SS);
 	            // Нажимаем кнопку
 	            kbd_press(r & 0xFFF);
 	    	    // Ждем
-	            PT_SLEEP(KEY_T*1000);
+	            sleep_ms(1000);
 	    	    // Отжимаем кнопку
 	            kbd_releaseAll(0);
 	    	    // Меняем состояние СС обратно
@@ -209,7 +207,6 @@ static PT_THREAD(handle_code(struct pt *pt)) {
 		            kbd_release(RK_SS);
                 else
 		            kbd_press(RK_SS);
-#undef KEY_T
 	        }
         }
 	    // Обнуляем код - значит что обработали
@@ -224,53 +221,33 @@ static PT_THREAD(handle_code(struct pt *pt)) {
 	    // Обнуляем код - значит что обработали
 	    code = 0;
 	}
-    if (0) PT_YIELD(pt);	// отключить warning
-    PT_END(pt);
 }
 
-
-static PT_THREAD(task(struct pt *pt))
-{
-    static struct pt sub;
-    
-    PT_BEGIN(pt);
-	while (1)
-	{
-	    // Получаем скан-код
-	    code = ps2_read();
-	    if (!code)
-	    {
+static void task(void) {
+    // Получаем скан-код
+    code = ps2_read();
+    if (!code) {
 		// Нет нажатия
-		PT_YIELD(pt);
-		continue;
-	    }
-	    
-	    if (kbd_ss())
-	    {
+		return;
+	}
+    if (kbd_ss()) {
 		// Отдельно обрабатываем кнопки с нажатым Shift, чтобы они совпадали с современной клавиатурой
 		map_mask = 0x0400; // kb_shift;
-		PT_SPAWN(pt, &sub, handle_code(&sub));
-		if (code==0) continue;
-	    }
-	    
-	    if ( ( (kbd_rus()) && (! kbd_ss()) ) ||
-		 ( (! kbd_rus()) && (kbd_ss()) ) )
-	    {
+		handle_code();
+		if (code == 0) return;
+	}
+	if ( ( (kbd_rus()) && (! kbd_ss()) ) || ( (! kbd_rus()) && (kbd_ss()) ) ) {
 		// Отдельно обрабатываем русские буквы, чтобы они совпадали с современной клавиатурой
 		map_mask = 0x0800; // map=kb_rus;
-		PT_SPAWN(pt, &sub, handle_code(&sub));
-		if (code==0) continue;
-	    }
-	    
-	    // Оставшиеся символы
-	    map_mask = 0; //kb_lat;
-	    PT_SPAWN(pt, &sub, handle_code(&sub));
-	    if (code==0) continue;
-	    
-	    // Код не обработан
-	    unhandled_code = code;
+		handle_code();
+		if (code == 0) return;
 	}
-    PT_END(pt);
+	// Оставшиеся символы
+	map_mask = 0; //kb_lat;
+	handle_code();
+	if (code == 0) return;
+    // Код не обработан
+    unhandled_code = code;
 }
 
 static struct pt pt_task;
@@ -296,7 +273,7 @@ void keymap_init(void) {
 }
 
 uint16_t keymap_periodic(void) {
-    (void)PT_SCHEDULE(task(&pt_task));
+    task();
     uint16_t ret = unhandled_code;
     unhandled_code = 0;
     return ret;

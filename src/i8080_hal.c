@@ -20,7 +20,7 @@ uint8_t RAM2[0x2000];
 // 0xE000..0xF800
 uint8_t ROM[0x1800];
 
-uint32_t i8080_cycles;
+uint32_t i8080_cycles = 0;
 
 int i8080_hal_memory_read_word(int addr)
 {

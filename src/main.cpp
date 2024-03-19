@@ -149,7 +149,9 @@ extern "C" void rk_2_at(uint16_t rk, uint16_t at) {
 extern "C" uint16_t rk_by_at(uint16_t at) {
     std::map<uint16_t, uint16_t>::const_iterator i = char2rk.find(at);
     if (i == char2rk.end()) return 0;
-    return i->second;
+    uint16_t res = i->second;
+    printf("%04Xh: %04Xh", at, res);
+    return res;
 }
 
 // Отношение частоты RP2040 к частоте эмуляции
@@ -236,12 +238,12 @@ int main() {
         int32_t dT = T - prev_T;
         if ( (dT > 0) || (turbo) ) {
             // Можно запускать эмуляцию проца
-            uint8_t n = turbo ? 200 : 20;
-            while (n--) {
+            //int n = 10;
+            //while (n--) {
         	    uint16_t c = i8080_instruction();
                 cycles += c;
                 i8080_cycles += c;
-            }
+            //}
             if (!turbo)
         	    prev_T += cycles * i8080_speed_K;
             else
