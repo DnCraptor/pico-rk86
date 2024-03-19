@@ -141,9 +141,20 @@ inline static void init_wii() {
     }
 }
 
+#include <map>
+static std::map<uint16_t, uint16_t> char2rk;
+extern "C" void rk_2_at(uint16_t rk, uint16_t at) {
+    char2rk[at] = rk;
+}
+extern "C" uint16_t rk_by_at(uint16_t at) {
+    std::map<uint16_t, uint16_t>::const_iterator i = char2rk.find(at);
+    if (i == char2rk.end()) return 0;
+    return i->second;
+}
+
 // Отношение частоты RP2040 к частоте эмуляции
 static const uint32_t freq = 366 * KHZ; // 160
-volatile uint8_t i8080_speed_K = 206;	// 160 / 1.78
+volatile uint8_t i8080_speed_K = 2;	// 160 / 178
 
 int main() {
     hw_set_bits(&vreg_and_chip_reset_hw->vreg, VREG_AND_CHIP_RESET_VREG_VSEL_BITS);
@@ -218,8 +229,8 @@ int main() {
     uint32_t sec_T = prev_T;
     uint32_t cycles = 0, sec_cycles = 0;
     bool turbo = true, win = false;
-    graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
-    graphics_set_mode(TEXTMODE_DEFAULT); // TODO: dynamic W/H
+    graphics_set_textbuffer(screen.vram);
+    graphics_set_mode(TEXTMODE_DEFAULT);
     while(true) {
         uint32_t T = getCycleCount();
         int32_t dT = T - prev_T;
@@ -292,7 +303,6 @@ int main() {
 	        uint16_t c;
 	        bool rst=false;
     	    ps2_leds(kbd_rus(), true, turbo);
-    	    ps2_periodic();
     	    c = keymap_periodic();
     	    switch (c) {
     		    case 0:
@@ -356,7 +366,7 @@ int main() {
 				case PS2_L_WIN:
 		        case PS2_R_WIN:
 		            // Нажали Win
-		            win=true;
+		            win = true;
 		            break;
 				case PS2_MENU:
 		            // Отобразить справку

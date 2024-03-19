@@ -12,7 +12,6 @@ extern "C" {
 
 
 void ps2_init(void);
-void ps2_periodic(void);
 
 uint16_t ps2_read(void);
 void ps2_leds(bool caps, bool num, bool scroll);

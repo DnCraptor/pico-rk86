@@ -143,7 +143,7 @@ uint32_t ps2get_raw_code(); // TODO: remap?
 
 uint16_t ps2_read(void) {
 	uint16_t w = (uint16_t)ps2get_raw_code() & 0xFFFF;
-	if (w & 0xF000) w = (w & ~0xF000) | 0x100;
+	if (w & 0xF000) w = (w & ~0x7000);
 	if (w) printf("ps2_read: %04Xh", w);
 	return w;
 }
@@ -240,10 +240,4 @@ resend2:
 	    last_led=l;
 	}
     PT_END(pt);
-}
-
-
-void ps2_periodic(void)
-{
-  ///  (void)PT_SCHEDULE(task(&pt_task));
 }

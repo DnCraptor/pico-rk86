@@ -8,74 +8,59 @@
 #define MOD_US	0x40
 #define MOD_RL	0x80
 
-
 static uint8_t scanline=0x00, mods=0xff, rus=0;
 static uint8_t kbd[8];
 
-
-void kbd_init(void)
-{
+void kbd_init(void) {
     ets_memset(kbd, 0xff, sizeof(kbd));
 }
 
-
-void kbd_press(uint16_t code)
-{
-    //ets_printf("PRESS 0x%04X\n", code);
-    if (code >> 12)
-    {
-	// Модификаторы
-        mods&=~((code >> 8) & 0xf0);
-    } else
-    {
-	// Скан-матрица
-    	kbd[ (code >> 8) & 0x07 ]&=~(code & 0xff);
+void kbd_press(uint16_t code) {
+    ets_printf("PRESS 0x%04X", code);
+    if (code >> 12) {
+	    // Модификаторы
+        printf("Modifiers %04Xh &-> %04Xh", mods, mods & ~((code >> 8) & 0xf0));
+        mods &= ~((code >> 8) & 0xf0);
+    } else {
+	    // Скан-матрица
+        printf("Scan-matrix kbd[%04Xh]: %04Xh &-> %04Xh", (code >> 8) & 0x07, kbd[ (code >> 8) & 0x07 ], kbd[ (code >> 8) & 0x07 ] & ~(code & 0xff));
+    	kbd[ (code >> 8) & 0x07 ] &= ~(code & 0xff);
     }
 }
 
-
-void kbd_release(uint16_t code)
-{
-    //ets_printf("RELEASE 0x%04X\n", code);
-    if (code >> 12)
-    {
-	// Модификаторы
+void kbd_release(uint16_t code) {
+    ets_printf("RELEASE 0x%04X", code);
+    if (code >> 12) {
+	    // Модификаторы
+        printf("Modifiers %04Xh |-> %04Xh", mods, mods | ((code >> 8) & 0xf0));
         mods|=((code >> 8) & 0xf0);
-    } else
-    {
-	// Скан-матрица
-        kbd[ (code >> 8) & 0x07 ]|=(code & 0xff);
+    } else {
+	    // Скан-матрица
+        printf("Scan-matrix kbd[%04Xh]: %04Xh |-> %04Xh", (code >> 8) & 0x07, kbd[ (code >> 8) & 0x07 ], kbd[ (code >> 8) & 0x07 ] | (code & 0xff));
+    	kbd[ (code >> 8) & 0x07 ] |= (code & 0xff);
     }
 }
 
-
-void kbd_releaseAll(uint16_t code)
-{
+void kbd_releaseAll(uint16_t code) {
     // Отпускаем все, кроме модификаторов
-    //ets_printf("RELEASE ALL\n");
-    if (code >> 12)
-    {
-	// Модификаторы
-        mods|=((code >> 8) & 0xf0);
+    ets_printf("RELEASE ALL");
+    if (code >> 12) {
+	    // Модификаторы
+        printf("Modifiers %04Xh |-> %04Xh", mods, mods | ((code >> 8) & 0xf0));
+        mods |= ((code >> 8) & 0xf0);
     }
     ets_memset(kbd, 0xff, sizeof(kbd));
 }
 
-
-bool kbd_rus(void)
-{
+bool kbd_rus(void) {
     return rus;
 }
 
-
-bool kbd_ss(void)
-{
+bool kbd_ss(void) {
     return (mods & MOD_SS) == 0;
 }
 
-
-void kbd_dump(void)
-{
+void kbd_dump(void) {
     int i;
     ets_printf("KBD:");
     for (i=0; i<8; i++)
