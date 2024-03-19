@@ -312,7 +312,7 @@ void vg75_external_end_of_screen(void) {
 	sreg |= SREG_IR;
 }
 
-
+#if 0
 void tv_data_field(void)
 {
     // Начало поля
@@ -350,7 +350,7 @@ void tv_data_field(void)
     // Получаем первую строку
     next_line();
 }
-
+#endif
 
 uint8_t* tv_data_line(void)
 {

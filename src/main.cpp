@@ -154,9 +154,8 @@ extern "C" uint16_t rk_by_at(uint16_t at) {
     return res;
 }
 
-// Отношение частоты RP2040 к частоте эмуляции
-static const uint32_t freq = 366 * KHZ; // 160
-volatile uint8_t i8080_speed_K = 2;	// 160 / 178
+static const uint32_t freq = 366 * KHZ;
+static uint8_t i8080_takts_in_ms = 2;
 
 int main() {
     hw_set_bits(&vreg_and_chip_reset_hw->vreg, VREG_AND_CHIP_RESET_VREG_VSEL_BITS);
@@ -229,31 +228,25 @@ int main() {
     // Запускаем эмуляцию
     uint32_t prev_T = getCycleCount();
     uint32_t sec_T = prev_T;
-    uint32_t cycles = 0, sec_cycles = 0;
+    uint32_t sec_cycles = 0;
     bool turbo = true, win = false;
     graphics_set_textbuffer(screen.vram);
     graphics_set_mode(TEXTMODE_DEFAULT);
     while(true) {
-        uint32_t T = getCycleCount();
-        int32_t dT = T - prev_T;
-        if ( (dT > 0) || (turbo) ) {
-            // Можно запускать эмуляцию проца
-            //int n = 10;
-            //while (n--) {
-        	    uint16_t c = i8080_instruction();
-                cycles += c;
-                i8080_cycles += c;
-            //}
-            if (!turbo)
-        	    prev_T += cycles * i8080_speed_K;
-            else
-        	    prev_T = T;
-            sec_cycles += cycles;
-            cycles = 0;
-        }
+        uint32_t T;
+        int32_t dT = 0;
+        // Можно запускать эмуляцию проца
+   	    uint16_t takts = i8080_instruction();
+        i8080_cycles += takts;
+        do {
+            T = getCycleCount();
+            dT = T - prev_T;
+        } while(!turbo && dT < takts / i8080_takts_in_ms);
+        prev_T = T;
+        sec_cycles += takts;
         if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
-            printf("Speed: %d; screen.vram: %04Xh", sec_cycles, screen.vram - RAM);
+            printf("Speed: %d; screen.vram: %04Xh; turbo: %d", sec_cycles, screen.vram - RAM, turbo);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;
