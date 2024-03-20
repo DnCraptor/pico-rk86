@@ -12,18 +12,10 @@
 extern "C" {
 #endif
 
-
-enum
-{
-    TYPE_REMOVED=0,
-    
+enum {
+    TYPE_REMOVED = 0,
     TYPE_TAPE,
-    TYPE_PROG,
-    TYPE_GAME,
-    TYPE_UTIL,
-    TYPE_ROM,
-    
-    TYPE_FREE=0xff,
+    TYPE_ANY,
 };
 
 #include "ff.h"

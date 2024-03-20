@@ -1,11 +1,8 @@
 #ifndef FILES_H
 #define FILES_H
 
-
 #include "ets.h"
 
-
-int16_t load_file(uint16_t n);
-
+int16_t load_file(uint16_t n, char* err, size_t sz);
 
 #endif

@@ -20,27 +20,17 @@ again:
     ui_clear();
     ui_header("RADIO-86RK -->");
     ui_draw_list(
-		"1.Programs\n"
-		"2.Games\n"
-		"3.Utilities\n"
-		"4.Tapes\n"
+		"1. Programs\n"
+		"2. Tapes\n"
 	);
-    switch (ui_select(4)) {
+    switch (ui_select(2)) {
 	case 0:
 	    // Программы
-	    type=TYPE_PROG;
+	    type = TYPE_ANY;
 	    break;
 	case 1:
-	    // Игры
-	    type=TYPE_GAME;
-	    break;
-	case 2:
-	    // Утилиты
-	    type=TYPE_UTIL;
-	    break;
-	case 3:
 	    // Магнитофонные записи
-	    type=TYPE_TAPE;
+	    type = TYPE_TAPE;
 	    break;
 	default:
 	    return false;
@@ -52,7 +42,8 @@ again2:
     // Загружаем файл
     if (type != TYPE_TAPE) {
 		// Загрузка образа в память
-		int16_t addr = load_file(n);
+		char err[64] = {0};
+		int16_t addr = load_file(n, err, 64);
 		if (addr >= 0) {
 	    	// Нормально загрузилось - запускаем
 	    	i8080_jump(addr);
@@ -63,6 +54,7 @@ again2:
 	    	ui_clear();
 	    	ui_header("RADIO-86RK -->");
 	    	ui_draw_text(10, 10, "File load error !");
+			ui_draw_text(10, 11, err);
 	    	ui_sleep(1000);
 	    	goto again2;
 		}
