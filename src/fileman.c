@@ -98,29 +98,29 @@ reread:
 #define PX	8
 #define PY	10
     // Горизонтальные линии
-    for (i = 1; i < 60; i++) {
-		ui_scr[PY +  0][PX + i] = 0xE0;
-		ui_scr[PY + 21][PX + i] = 0xE0;
-    }
+ //   for (i = 1; i < 60; i++) {
+//		ui_scr[PY +  0][PX + i] = 0xE0;
+//		ui_scr[PY + 21][PX + i] = 0xE0;
+//    }
     // Вертикальные линии + аттрибуты
-    for (i = 0; i < 20; i++) {
-		for (j = 0; j < 4; j++) {
-	    	ui_scr[PY + 1 + i][PX + j *17 + 0] = 0xE4;
-	    	ui_scr[PY + 1 + i][PX + j *17 + 1] = 0x80;
-	    	ui_scr[PY + 1 + i][PX + j *17 +16] = 0x80;
-		}
-		ui_scr[PY + 1 + i][PX + 4 * 17] = 0xE4;
-    }
+//    for (i = 0; i < 20; i++) {
+//		for (j = 0; j < 4; j++) {
+//	    	ui_scr[PY + 1 + i][PX + j *17 + 0] = 0xE4;
+//	    	ui_scr[PY + 1 + i][PX + j *17 + 1] = 0x80;
+//	    	ui_scr[PY + 1 + i][PX + j *17 +16] = 0x80;
+//		}
+//		ui_scr[PY + 1 + i][PX + 4 * 17] = 0xE4;
+//    }
     // Уголки
-    ui_scr[PY + 0][PX + 0] = 0xC0;
-    ui_scr[PY +21][PX + 0] = 0xC8;
-    ui_scr[PY + 0][PX +60] = 0xC4;
-    ui_scr[PY +21][PX +60] = 0xCC;
+//    ui_scr[PY + 0][PX + 0] = 0xC0;
+//    ui_scr[PY +21][PX + 0] = 0xC8;
+//    ui_scr[PY + 0][PX +60] = 0xC4;
+//    ui_scr[PY +21][PX +60] = 0xCC;
     
     // Рисуем список файлов
     for (i = 0; i < files_count; i++) {
-		int x = PX + 1 + (i / 20) * 17;
-		int y = PY + 1 + (i % 20);
+		int x = PX + 1 + (i / 18) * 17;
+		int y = PY + 1 + (i % 18);
 		// Имя файла
 		ui_draw_text(x + 1, y, files_info[i].name);
 		// Размер
@@ -134,9 +134,9 @@ reread:
 		n = files_count - 1;
     while (1) {
 		// Стираем курсор с предыдущего файла
-		ui_scr[PY + 1 + (prev % 20)][PX + (prev / 20) * 17 + 1] = 0x80;
+		ui_scr[PY + 1 + (prev % 18)][PX + (prev / 18) * 17 + 1] = 0x80;
 		// Рисуем курсор на новом месте
-		ui_scr[PY + 1 + (n % 20)][PX + (n / 20) * 17 + 1] = 0x90;
+		ui_scr[PY + 1 + (n % 18)][PX + (n / 18) * 17 + 1] = 0x90;
 		// Запоминаем текущую позицию
 		prev = n;
 		// Обрабатываем нажатия кнопок
@@ -152,25 +152,24 @@ reread:
 				break;
 	    	} else if ( (c == PS2_LEFT) && (n > 0) ) {
 				// Влево
-				n -= 20;
+				n -= 18;
 				if (n < 0) n = 0;
 				break;
 	    	} else if ( (c == PS2_RIGHT) && (n < files_count - 1) ) {
 				// Вправо
-				n += 20;
+				n += 18;
 				if (n >= files_count) n = files_count - 1;
 				break;
 	    	} else if ( (c == PS2_DELETE) || (c == PS2_D) || (c == PS2_BACKSPACE) ) {
 				// Удалить
-				del(files_info[i].name);
+				del(files_info[n].name);
 				goto reread;
 	    	} else if ( (c == PS2_SPACE) || (c == PS2_R) ) {
 				// Переименовать
-				rename(files_info[i].name);
+				rename(files_info[n].name);
 				goto reread;
 	    	} else if ( (c == PS2_ENTER) || (c == PS2_KP_ENTER) ) {
 				// Выбрать
-				n = i;
 				goto done;
 	    	} else if (c == PS2_ESC) {
 				// Отмена
