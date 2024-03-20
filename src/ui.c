@@ -219,36 +219,32 @@ int8_t ui_yes_no(const char *comment) {
 
 static struct screen save;
 
-void ui_start(void)
-{
+void ui_start(void) {
     // Сохраняем параметры экрана
-    save=screen;
-    
+    save = screen;
     // Перенастраиваем экран под себя
-    screen.screen_w=80;
-    screen.screen_h=38;
-    screen.underline_y=7;
-    screen.char_h=8;
-    screen.x_offset=4;
-    screen.y_offset=8;
-    screen.attr_visible=0;
-    screen.cursor_x=0;
-    screen.cursor_y=99;
-    screen.cursor_type=0;
-    screen.vram=(uint8_t*)ui_scr;
-	graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
-    screen.overlay_timer=0;
-    
+    screen.screen_w = 80;
+    screen.screen_h = 38;
+    screen.underline_y = 7;
+    screen.char_h = 8;
+    screen.x_offset = 4;
+    screen.y_offset = 8;
+    screen.attr_visible = 0;
+    screen.cursor_x = 0;
+    screen.cursor_y = 99;
+    screen.cursor_type = 0;
+    screen.vram = (uint8_t*)ui_scr;
+	graphics_set_textbuffer(screen.vram);
+    screen.overlay_timer = 0;
     // Очищаем экран
     ui_clear();
 }
 
-
-void ui_stop(void)
-{
+void ui_stop(void) {
     // Возвращаем экран на место
-    save.overlay_timer=0;
-    screen=save;
+    save.overlay_timer = 0;
+    screen = save;
+	graphics_set_textbuffer(screen.vram);
 }
 
 void ui_sleep(uint16_t ms) {

@@ -229,7 +229,7 @@ int main() {
     uint32_t prev_T = getCycleCount();
     uint32_t sec_T = prev_T;
     uint32_t sec_cycles = 0;
-    bool turbo = true, win = false;
+    bool turbo = false, win = false;
     graphics_set_textbuffer(screen.vram);
     graphics_set_mode(TEXTMODE_DEFAULT);
     while(true) {
