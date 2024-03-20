@@ -1,4 +1,7 @@
 #include "ffs.h"
+
+char BASE_DIR[MAX_WIDTH] = { "\\rk86" };
+
 #if FFS
 #ifdef __ets__
     #include "ets.h"

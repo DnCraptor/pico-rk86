@@ -38,6 +38,24 @@ again2:
     ui_clear();
     int16_t n = fileman(type, "Select file to load:");
     if (n < 0) goto again;
+	if (files_info[n].fattrib & AM_DIR) {
+		if (strncmp(files_info[n].name, "..", MAX_WIDTH) == 0) {
+			for (int i = strlen(BASE_DIR) - 1; i > 0; --i) {
+				if (BASE_DIR[i] == '\\') {
+					BASE_DIR[i] = 0;
+					files_count = 0;
+					ui_clear();
+					goto again2;
+				}
+			}
+		}
+    	char str[MAX_WIDTH];
+    	snprintf(str, MAX_WIDTH, "%s\\%s", BASE_DIR, files_info[n].name);
+		stpncpy(BASE_DIR, str, MAX_WIDTH);
+		files_count = 0;
+		ui_clear();
+		goto again2;
+	}
     // Загружаем файл
     if (type != TYPE_TAPE) {
 		// Загрузка образа в память

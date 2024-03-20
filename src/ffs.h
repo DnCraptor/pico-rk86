@@ -22,7 +22,7 @@ enum {
 
 #define MAX_FILES 500
 #define MAX_WIDTH 128
-#define BASE_DIR "\\rk86"
+extern char BASE_DIR[MAX_WIDTH];
 
 typedef struct {
     FSIZE_t fsize;   /* File size */

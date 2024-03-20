@@ -80,6 +80,14 @@ reread:
         m_add_file(&fileInfo);
     }
     f_closedir(&dir);
+    if (strlen(BASE_DIR) > 5) {
+        file_info_t* fp = &files_info[files_count++];
+        fp->fattrib = AM_DIR;
+        fp->fdate   = 0;
+        fp->ftime   = 0;
+        fp->fsize   = 0;
+        strncpy(fp->name, "..", MAX_WIDTH >> 1);
+    }
     // Сортируем каталог по имени
 	qsort (files_info, files_count, sizeof(file_info_t), m_comp);
     // Рисуем
@@ -119,13 +127,19 @@ reread:
 	char str[16];    
     // Рисуем список файлов
     for (size_t i = 0; i < files_count; i++) {
-		int x = PX + 1 + (i / 17) * 17;
-		int y = PY + 1 + (i % 17);
+		int x = PX + 1 + (i / 16) * 16;
+		int y = PY + 1 + (i % 16);
 		// Имя файла
 		ui_draw_text(x + 1, y, files_info[i].name);
 		// Размер
-		xsprintf(str, "%5d", files_info[i].fsize);
-		ui_draw_text(x + 10, y, str);
+        if (files_info[i].fsize) {
+            xsprintf(str, "%5d", files_info[i].fsize);
+            ui_draw_text(x + 10, y, str);
+        } else if (files_info[i].fattrib & AM_DIR) {
+		    ui_draw_text(x + 10, y, "<DIR>");
+        } else {
+            ui_draw_text(x + 10, y, " ??? ");
+        }
     }
     int n = 0, prev = 0;
     // Выбор файла
@@ -133,9 +147,9 @@ reread:
         if (n >= files_count)
 		    n = files_count - 1;
 		// Стираем курсор с предыдущего файла
-		ui_scr[PY + 1 + (prev % 17)][PX + (prev / 17) * 17 + 1] = 0x80;
+		ui_scr[PY + 1 + (prev % 16)][PX + (prev / 16) * 16 + 1] = 0x80;
 		// Рисуем курсор на новом месте
-		ui_scr[PY + 1 + (n % 17)][PX + (n / 17) * 17 + 1] = 0x90;
+		ui_scr[PY + 1 + (n % 16)][PX + (n / 16) * 16 + 1] = 0x90;
 		// Запоминаем текущую позицию
 		prev = n;
 		// Обрабатываем нажатия кнопок
@@ -151,12 +165,12 @@ reread:
 				break;
 	    	} else if ( (c == PS2_LEFT) && (n > 0) ) {
 				// Влево
-				n -= 18;
+				n -= 16;
 				if (n < 0) n = 0;
 				break;
 	    	} else if ( (c == PS2_RIGHT) && (n < files_count - 1) ) {
 				// Вправо
-				n += 18;
+				n += 16;
 				if (n >= files_count) n = files_count - 1;
 				break;
 	    	} else if ( (c == PS2_DELETE) || (c == PS2_D) || (c == PS2_BACKSPACE) ) {
