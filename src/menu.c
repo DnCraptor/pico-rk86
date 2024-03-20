@@ -14,8 +14,6 @@
 bool menu_fileman(void)
 {
     uint8_t type;
-    int16_t n;
-    
 again:
     ui_clear();
     ui_header("RADIO-86RK -->");
@@ -37,7 +35,8 @@ again:
     }
     // Выбираем файл
 again2:
-    n = fileman(type, "Select file to load:");
+    ui_clear();
+    int16_t n = fileman(type, "Select file to load:");
     if (n < 0) goto again;
     // Загружаем файл
     if (type != TYPE_TAPE) {
@@ -71,22 +70,22 @@ again:
     ui_clear();
     ui_header("RADIO-86RK -->");
     ui_draw_list(
-		"1.(  F11 )  Return to the monitor (no cleanup)\n"
-		"2.(  F12 )  File manager\n"
-		"3.(PrnScr)  Full reset\n"
-		"4.(Pause )  Switch to USB mode\n"
+		"1. (  F11 )  Return to the monitor (no cleanup)\n"
+		"2. (  F12 )  File manager\n"
+		"3. (PrnScr)  Full reset\n"
+		"4. (Pause )  Switch to USB mode\n"
 	);
     ui_draw_text(10, 16,
 		"Keyboard mapping:\n"
 		"F1-F4   - F1-F4          BK  - Enter\n"
-		"AR2     - Alt            PC  - Доп. Enter\n"
+		"AR2     - Alt            PC  - Right Enter\n"
 		"RUS/LAT - Caps Lock      3B  - Backspace\n"
 		"YC      - CTRL           \\   - Home\n"
 		"CC      - Shift          CTP - End/Delete\n"
 	"\n"
 	"\n"
 	"Emulation Management:\n"
-	"F5-F10      - Call ROM E000+n*4\n"
+	"F5 - F10    - Call ROM E000 + n*4\n"
 	"Scroll Lock - Turbo mode ON/OFF\n"
 	"WIN+Cursor  - Shift screen\n"
 	"MENU        - Help about Radio-86RK\n"

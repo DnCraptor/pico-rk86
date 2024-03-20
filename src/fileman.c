@@ -69,12 +69,12 @@ inline static void m_add_file(FILINFO* fi) {
 
 int16_t fileman(uint8_t type, const char *text)
 {
-    int i, j;
-    int n = 0, prev = 0;
     DIR dir;
 reread:
+    files_count = 0;
     // Собираем каталог файлов
-	if (f_opendir(&dir, BASE_DIR) != FR_OK) return -1;
+	if (f_opendir(&dir, BASE_DIR) != FR_OK)
+        return -1;
     FILINFO fileInfo;
     while(f_readdir(&dir, &fileInfo) == FR_OK && fileInfo.fname[0] != '\0') {
         m_add_file(&fileInfo);
@@ -91,8 +91,8 @@ reread:
 		return -1;
     }
     ui_draw_text(10, 9, text);
-    ui_draw_text(10, 32, "ENTER - select    SPACE  - rename");
-    ui_draw_text(10, 33, "ESC   - cancel    DELETE - remove");
+    ui_draw_text(10, 28, "ENTER - select    SPACE  - rename");
+    ui_draw_text(10, 29, "ESC   - cancel    DELETE - remove");
     // Для красивых рамок
     screen.underline_y = 4;
 #define PX	8
@@ -116,27 +116,26 @@ reread:
 //    ui_scr[PY +21][PX + 0] = 0xC8;
 //    ui_scr[PY + 0][PX +60] = 0xC4;
 //    ui_scr[PY +21][PX +60] = 0xCC;
-    
+	char str[16];    
     // Рисуем список файлов
-    for (i = 0; i < files_count; i++) {
-		int x = PX + 1 + (i / 18) * 17;
-		int y = PY + 1 + (i % 18);
+    for (size_t i = 0; i < files_count; i++) {
+		int x = PX + 1 + (i / 17) * 17;
+		int y = PY + 1 + (i % 17);
 		// Имя файла
 		ui_draw_text(x + 1, y, files_info[i].name);
 		// Размер
-		char str[16];
 		xsprintf(str, "%5d", files_info[i].fsize);
 		ui_draw_text(x + 10, y, str);
     }
-    
+    int n = 0, prev = 0;
     // Выбор файла
-    if (n >= files_count)
-		n = files_count - 1;
     while (1) {
+        if (n >= files_count)
+		    n = files_count - 1;
 		// Стираем курсор с предыдущего файла
-		ui_scr[PY + 1 + (prev % 18)][PX + (prev / 18) * 17 + 1] = 0x80;
+		ui_scr[PY + 1 + (prev % 17)][PX + (prev / 17) * 17 + 1] = 0x80;
 		// Рисуем курсор на новом месте
-		ui_scr[PY + 1 + (n % 18)][PX + (n / 18) * 17 + 1] = 0x90;
+		ui_scr[PY + 1 + (n % 17)][PX + (n / 17) * 17 + 1] = 0x90;
 		// Запоминаем текущую позицию
 		prev = n;
 		// Обрабатываем нажатия кнопок

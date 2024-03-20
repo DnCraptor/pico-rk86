@@ -155,7 +155,7 @@ extern "C" uint16_t rk_by_at(uint16_t at) {
 }
 
 static const uint32_t freq = 366 * KHZ;
-static uint8_t i8080_takts_in_ms = 2;
+static int i8080_takts_in_ms = 1;
 
 int main() {
     hw_set_bits(&vreg_and_chip_reset_hw->vreg, VREG_AND_CHIP_RESET_VREG_VSEL_BITS);
@@ -229,7 +229,7 @@ int main() {
     uint32_t prev_T = getCycleCount();
     uint32_t sec_T = prev_T;
     uint32_t sec_cycles = 0;
-    bool turbo = false, win = false;
+    bool win = false;
     graphics_set_textbuffer(screen.vram);
     graphics_set_mode(TEXTMODE_DEFAULT);
     while(true) {
@@ -241,12 +241,14 @@ int main() {
         do {
             T = getCycleCount();
             dT = T - prev_T;
-        } while(!turbo && dT < takts / i8080_takts_in_ms);
+        } while(i8080_takts_in_ms && dT < takts / i8080_takts_in_ms);
         prev_T = T;
         sec_cycles += takts;
         if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
-            printf("Speed: %d; screen.vram: %04Xh; turbo: %d", sec_cycles, screen.vram - RAM, turbo);
+        //    printf("Speed: %d; screen.vram: %04Xh; turbo: %d", sec_cycles, screen.vram - RAM, turbo);
+            if (i8080_takts_in_ms != 1)
+                snprintf((char*)screen.vram, 10, "%d", sec_cycles);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;
@@ -297,7 +299,7 @@ int main() {
 	        // Win не нажата
 	        uint16_t c;
 	        bool rst=false;
-    	    ps2_leds(kbd_rus(), true, turbo);
+    	    ps2_leds(kbd_rus(), true, !i8080_takts_in_ms);
     	    c = keymap_periodic();
     	    switch (c) {
     		    case 0:
@@ -356,7 +358,8 @@ int main() {
 		            break;
 				case PS2_SCROLL:
 		            // Переключатель турбо
-		            turbo = !turbo;
+		            i8080_takts_in_ms--;
+                    if (i8080_takts_in_ms < 0) i8080_takts_in_ms = 3;
 		            break;
 				case PS2_L_WIN:
 		        case PS2_R_WIN:

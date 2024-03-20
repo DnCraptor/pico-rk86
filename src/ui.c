@@ -12,22 +12,16 @@
 #include "align4.h"
 #include "ffs.h"
 #include "timer0.h"
-
 #include "menu.h"
-
 
 char ui_scr[38][80];
 
-
-void ui_clear(void)
-{
+void ui_clear(void) {
     ets_memset(ui_scr, 0x00, sizeof(ui_scr));
 }
 
-
 #define HEADER_Y	4
-void ui_header(const char *s)
-{
+void ui_header(const char *s) {
     static const uint8_t syms[]=
 	{
 	    0, 4, 16, 20, 2, 6, 18, 22,
