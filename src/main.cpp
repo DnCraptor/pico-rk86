@@ -248,7 +248,7 @@ int main() {
             // Прошла секунда
         //    printf("Speed: %d; screen.vram: %04Xh; turbo: %d", sec_cycles, screen.vram - RAM, turbo);
             if (i8080_takts_in_ms != 1)
-                snprintf((char*)screen.vram, 10, "%d", sec_cycles);
+                snprintf((char*)screen.vram, 16, "%d %d*%d", sec_cycles, screen.screen_w, screen.screen_h);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;

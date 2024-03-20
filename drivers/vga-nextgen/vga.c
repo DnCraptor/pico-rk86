@@ -139,16 +139,31 @@ void __time_critical_func() dma_handler_VGA() {
                 //из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = z[*text_buffer_line++];
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
-                if (screen.cursor_type &&
-                    (screen_line >> 4) == screen.cursor_y && x == screen.cursor_x && l >= 7 && l <= 8) {
-                    *output_buffer_8bit++ = color[1];
-                    *output_buffer_8bit++ = color[1];
-                    *output_buffer_8bit++ = color[1];
-                    *output_buffer_8bit++ = color[1];
-                    *output_buffer_8bit++ = color[1];
-                    *output_buffer_8bit++ = color[1];
-                    *output_buffer_8bit++ = color[1];
-                    *output_buffer_8bit++ = color[1];
+                bool blink = (frame_number % 100) == 0;
+                if ((screen.cursor_type == 3 || screen.cursor_type == 1 && frame_number) &&
+                    (screen_line >> 4) == screen.cursor_y && x == screen.cursor_x && l >= 7 && l <= 8
+                ) {
+                    uint8_t c = color[1];
+                    *output_buffer_8bit++ = c;
+                    *output_buffer_8bit++ = c;
+                    *output_buffer_8bit++ = c;
+                    *output_buffer_8bit++ = c;
+                    *output_buffer_8bit++ = c;
+                    *output_buffer_8bit++ = c;
+                    *output_buffer_8bit++ = c;
+                    *output_buffer_8bit++ = c;
+                } else if (
+                    (screen.cursor_type == 3 || screen.cursor_type == 1 && frame_number) &&
+                    (screen_line >> 4) == screen.cursor_y && x == screen.cursor_x
+                ) {
+                    *output_buffer_8bit++ = color[!((glyph_pixels >> 7) & 1)];
+                    *output_buffer_8bit++ = color[!((glyph_pixels >> 6) & 1)];
+                    *output_buffer_8bit++ = color[!((glyph_pixels >> 5) & 1)];
+                    *output_buffer_8bit++ = color[!((glyph_pixels >> 4) & 1)];
+                    *output_buffer_8bit++ = color[!((glyph_pixels >> 3) & 1)];
+                    *output_buffer_8bit++ = color[!((glyph_pixels >> 2) & 1)];
+                    *output_buffer_8bit++ = color[!((glyph_pixels >> 1) & 1)];
+                    *output_buffer_8bit++ = color[!(glyph_pixels & 1)];
                 } else {
                     *output_buffer_8bit++ = color[(glyph_pixels >> 7) & 1];
                     *output_buffer_8bit++ = color[(glyph_pixels >> 6) & 1];
