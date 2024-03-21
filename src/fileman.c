@@ -67,9 +67,14 @@ inline static void m_add_file(FILINFO* fi) {
     strncpy(fp->name, fi->fname, MAX_WIDTH >> 1);
 }
 
+#define COLS 4
+#define FILES 16
+
 int16_t fileman(uint8_t type, const char *text)
 {
     DIR dir;
+    static int page = 0, n = 0, prev = 0;
+    page = 0, n = 0;
 reread:
     files_count = 0;
     // Собираем каталог файлов
@@ -126,67 +131,93 @@ reread:
 //    ui_scr[PY +21][PX +60] = 0xCC;
 	char str[16];    
     // Рисуем список файлов
-    for (size_t i = 0; i < files_count; i++) {
-		int x = PX + 1 + (i / 16) * 16;
-		int y = PY + 1 + (i % 16);
+    int off = page * FILES * COLS;
+    for (size_t i = 0; i < files_count - off && i < FILES * COLS; ++i) {
+		int x = PX + 1 + (i / FILES) * FILES;
+		int y = PY + 1 + (i % FILES);
+        int io = i + off;
 		// Имя файла
-		ui_draw_text(x + 1, y, files_info[i].name);
+		ui_draw_text(x + 1, y, files_info[io].name);
 		// Размер
-        if (files_info[i].fsize) {
-            xsprintf(str, "%5d", files_info[i].fsize);
+        if (files_info[io].fsize) {
+            xsprintf(str, "%5d", files_info[io].fsize);
             ui_draw_text(x + 10, y, str);
-        } else if (files_info[i].fattrib & AM_DIR) {
+        } else if (files_info[io].fattrib & AM_DIR) {
 		    ui_draw_text(x + 10, y, "<DIR>");
         } else {
             ui_draw_text(x + 10, y, " ??? ");
         }
     }
-    int n = 0, prev = 0;
     // Выбор файла
     while (1) {
-        if (n >= files_count)
-		    n = files_count - 1;
+        if (n >= files_count - off)
+		    n = files_count - off - 1;
 		// Стираем курсор с предыдущего файла
-		ui_scr[PY + 1 + (prev % 16)][PX + (prev / 16) * 16 + 1] = 0x80;
+		ui_scr[PY + 1 + (prev % FILES)][PX + (prev / FILES) * FILES + 1] = 0x80;
 		// Рисуем курсор на новом месте
-		ui_scr[PY + 1 + (n % 16)][PX + (n / 16) * 16 + 1] = 0x90;
+		ui_scr[PY + 1 + (n % FILES)][PX + (n / FILES) * FILES + 1] = 0x90;
 		// Запоминаем текущую позицию
 		prev = n;
 		// Обрабатываем нажатия кнопок
 		while (1) {
 	    	uint16_t c = ps2_read();
-	    	if ( (c == PS2_UP) && (n > 0) ) {
+	    	if ( c == PS2_UP ) {
 				// Вверх
 				n--;
+                if (n < 0) {
+                    n = FILES * COLS - 1;
+                    if (--page < 0) {
+                        page = 0;
+                        n = 0;
+                    }
+                    goto reread;
+                }
 				break;
-	    	} else if ( (c == PS2_DOWN) && (n < files_count - 1) ) {
+	    	} else if ( (c == PS2_DOWN) && (n < files_count - off - 1) ) {
 				// Вниз
 				n++;
+                if (n >= FILES * COLS) {
+                    n = 0;
+                    page++;
+                    goto reread;
+                }
 				break;
-	    	} else if ( (c == PS2_LEFT) && (n > 0) ) {
+	    	} else if ( c == PS2_LEFT ) {
 				// Влево
-				n -= 16;
-				if (n < 0) n = 0;
+				n -= FILES;
+				if (n < 0) {
+                    n += FILES * COLS;
+                    if (--page < 0) {
+                        page = 0;
+                        n = 0;
+                    }
+                    goto reread;
+                }
 				break;
 	    	} else if ( (c == PS2_RIGHT) && (n < files_count - 1) ) {
 				// Вправо
-				n += 16;
+				n += FILES;
 				if (n >= files_count) n = files_count - 1;
+                if (n >= FILES * COLS) {
+                    n -= FILES * COLS;
+                    page++;
+                    goto reread;
+                }
 				break;
 	    	} else if ( (c == PS2_DELETE) || (c == PS2_D) || (c == PS2_BACKSPACE) ) {
 				// Удалить
-				del(files_info[n].name);
+				del(files_info[n + off].name);
 				goto reread;
 	    	} else if ( (c == PS2_SPACE) || (c == PS2_R) ) {
 				// Переименовать
-				rename(files_info[n].name);
+				rename(files_info[n + off].name);
 				goto reread;
 	    	} else if ( (c == PS2_ENTER) || (c == PS2_KP_ENTER) ) {
 				// Выбрать
 				goto done;
 	    	} else if (c == PS2_ESC) {
 				// Отмена
-				n = -1;
+				n = -1 - off;
 				goto done;
 	    	}
 		}
@@ -194,5 +225,5 @@ reread:
 done:
     // Возвращаем позицию подчеркивания
     screen.underline_y = 7;
-    return n;
+    return n + off;
 }
