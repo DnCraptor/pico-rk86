@@ -124,24 +124,27 @@ void __time_critical_func() dma_handler_VGA() {
         case TEXTMODE_160x100:
         case TEXTMODE_53x30:
         case TEXTMODE_DEFAULT: {
-            if (screen_line % 2) return;
             uint16_t* output_buffer_16bit = (uint16_t *)*output_buffer;
             output_buffer_16bit += shift_picture / 2;
             uint8_t* output_buffer_8bit = (uint8_t*)output_buffer_16bit;
            	// Видимая линия
-            uint16_t l = (screen_line >> 1) & 7;
+            uint16_t visible_line = screen_line >> 1;
+            // Номер линии внутри строки
+            uint16_t l = visible_line & 7;
+            // Номер строки
+            uint8_t ln = visible_line >> 3;
         	const uint8_t* z = zkg[0] + (l << 7);
-            //указатель откуда начать считывать символы
-            uint8_t* text_buffer_line = &text_buffer[(screen_line >> 4) * screen.screen_w];
-            //считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
+            // указатель откуда начать считывать символы
+            uint8_t* text_buffer_line = &text_buffer[ln * screen.screen_w];
+            // считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
             uint16_t* color = &txt_palette_fast[8]; // 8 GREEN on BLACK (11 наоборот)
             for (int x = 0; x < screen.screen_w; x++) {
-                //из таблицы символов получаем "срез" текущего символа
+                // из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = z[*text_buffer_line++];
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
                 bool blink = (frame_number % 100) == 0;
                 if ((screen.cursor_type == 3 || screen.cursor_type == 1 && frame_number) &&
-                    (screen_line >> 4) == screen.cursor_y && x == screen.cursor_x && l >= 7 && l <= 8
+                    ln == screen.cursor_y && x == screen.cursor_x && l >= 7 && l <= 8
                 ) {
                     uint8_t c = color[1];
                     *output_buffer_8bit++ = c;
@@ -154,7 +157,7 @@ void __time_critical_func() dma_handler_VGA() {
                     *output_buffer_8bit++ = c;
                 } else if (
                     (screen.cursor_type == 3 || screen.cursor_type == 1 && frame_number) &&
-                    (screen_line >> 4) == screen.cursor_y && x == screen.cursor_x
+                    ln == screen.cursor_y && x == screen.cursor_x
                 ) {
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 7) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 6) & 1)];
