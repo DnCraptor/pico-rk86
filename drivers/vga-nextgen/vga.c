@@ -128,7 +128,7 @@ void __time_critical_func() dma_handler_VGA() {
             output_buffer_16bit += shift_picture / 2;
             uint8_t* output_buffer_8bit = (uint8_t*)output_buffer_16bit;
            	// Видимая линия
-            uint16_t visible_line = screen_line >> 1;
+            uint16_t visible_line = screen_line * screen.screen_h / 60;
             // Номер линии внутри строки
             uint16_t l = visible_line & 7;
             // Номер строки
