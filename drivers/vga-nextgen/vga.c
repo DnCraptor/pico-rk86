@@ -142,10 +142,10 @@ void __time_critical_func() dma_handler_VGA() {
                 // из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = z[*text_buffer_line++];
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
-                bool blink = (frame_number % 100) == 0;
-                if ((screen.cursor_type == 3 || screen.cursor_type == 1 && frame_number) &&
-                    ln == screen.cursor_y && x == screen.cursor_x && l >= 7 && l <= 8
-                ) {
+                bool blink = (frame_number % 50 > 25) == 0;
+                bool cur_b = (screen.cursor_type == 3 || (screen.cursor_type == 1 && blink)) &&
+                             ln == screen.cursor_y && x == screen.cursor_x;
+                if (cur_b && l >= 7 && l <= 8) {
                     uint8_t c = color[1];
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
@@ -155,10 +155,7 @@ void __time_critical_func() dma_handler_VGA() {
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
-                } else if (
-                    (screen.cursor_type == 3 || screen.cursor_type == 1 && frame_number) &&
-                    ln == screen.cursor_y && x == screen.cursor_x
-                ) {
+                } else if (cur_b) {
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 7) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 6) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 5) & 1)];

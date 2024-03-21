@@ -3657,7 +3657,7 @@ FRESULT f_open (
 	BYTE mode			/* Access mode and open mode flags */
 )
 {
-	gpio_put(PICO_DEFAULT_LED_PIN, true);
+//	gpio_put(PICO_DEFAULT_LED_PIN, true);
 	#ifdef MNGR_DEBUG
 	if (strcmp(path, DEBUG_LOG) != 0) printf("f_open(%s, %02Xh)", path, mode);
 	#endif
@@ -4179,7 +4179,7 @@ FRESULT f_close (
 #endif
 		}
 	}
-	gpio_put(PICO_DEFAULT_LED_PIN, false);
+	//gpio_put(PICO_DEFAULT_LED_PIN, false);
 	return res;
 }
 
