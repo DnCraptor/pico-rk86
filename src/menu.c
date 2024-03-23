@@ -16,7 +16,11 @@ bool menu_fileman(void)
     uint8_t type;
 again:
     ui_clear();
-    ui_header("RADIO-86RK -->");
+    #if MODEL==MICROSHA
+        ui_header("MICROSHA -->");
+    #else
+        ui_header("RADIO-86RK -->");
+    #endif
     ui_draw_list(
 		"1. Programs\n"
 		"2. Tapes\n"
@@ -69,7 +73,11 @@ again2:
 		} else {
 	    	// Ошибка загрузки файла
 	    	ui_clear();
-	    	ui_header("RADIO-86RK -->");
+    		#if MODEL==MICROSHA
+        		ui_header("MICROSHA -->");
+    		#else
+        		ui_header("RADIO-86RK -->");
+    		#endif
 	    	ui_draw_text(10, 10, "File load error !");
 			ui_draw_text(10, 11, err);
 	    	ui_sleep(1000);
@@ -86,7 +94,11 @@ void menu(void) {
     char str[32];
 again:
     ui_clear();
-    ui_header("RADIO-86RK -->");
+    #if MODEL==MICROSHA
+        ui_header("MICROSHA -->");
+    #else
+        ui_header("RADIO-86RK -->");
+    #endif
     ui_draw_list(
 		"1. (  F11 )  Return to the monitor (no cleanup)\n"
 		"2. (  F12 )  File manager\n"
@@ -106,7 +118,7 @@ again:
 	"F5 - F10    - Call ROM E000 + n*4\n"
 	"Scroll Lock - Turbo mode ON/OFF\n"
 	"WIN+Cursor  - Shift screen\n"
-	"MENU        - Help about Radio-86RK\n"
+//	"MENU        - Help about Radio-86RK\n"
 	);
     xsprintf(str, "RK8266 for ZX Mulmulator");
     ui_draw_text(64+6-ets_strlen(str), 33, str);

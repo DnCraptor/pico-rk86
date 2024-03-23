@@ -6,6 +6,7 @@
 #include "zkg.h"
 #include "vv55_i.h"
 #include "rom.h"
+#include "mikrosha_rom.h"
 #include "align4.h"
 #include "board.h"
 
@@ -69,11 +70,14 @@ uint8_t i8080_hal_memory_read_byte(int addr) {
 	    	return ROM[addr & 0x1FFF];
 	    case 0xF:
 			if (addr < 0x8F00) {
-//printf("i8080_hal_memory_read_byte ROM[%04Xh] %02Xh", addr & 0x1FFF, ROM[addr & 0x1FFF]);
+				//printf("i8080_hal_memory_read_byte ROM[%04Xh] %02Xh", addr & 0x1FFF, ROM[addr & 0x1FFF]);
 				return ROM[addr & 0x1FFF];
 			}
-		//	printf("i8080_hal_memory_read_byte ROM_F800[%04Xh] %02Xh", addr - 0xF800, ROM_F800[addr - 0xF800]);
-	    	return ROM_F800[addr - 0xF800];
+			#if MODEL==MICROSHA
+	    		return mikrosha_rom[addr - 0xF800];
+			#else
+				return ROM_F800[addr - 0xF800];
+			#endif
 	    default:
 			return 0x00;
 		}
@@ -109,24 +113,23 @@ void i8080_hal_memory_write_byte(int addr, int byte)
 		if (addr & (1 << 10))	// A10 - переключатель ВГ75/шрифт
 		{
 		    // Шрифт (A12,A11 - номер шрифта)
-		    uint8_t n=(addr >> 11) & 0x03;
-		    addr&=0x3FF;
-		    addr=((addr & 0x07) << 7) | (addr >> 3);	// меняем адресацию
-		    if (n!=0) zkg[n][addr]=byte ^ 0xFF;	// 0-й шрифт запрещаем менять
-		} else
-		{
+		    uint8_t n = (addr >> 11) & 0x03;
+		    addr &= 0x3FF;
+		    addr = ((addr & 0x07) << 7) | (addr >> 3);	// меняем адресацию
+		    if (n!=0) zkg[n][addr] = byte ^ 0xFF;	// 0-й шрифт запрещаем менять
+		} else	{
 		    // ВГ75
 		    vg75_W(addr & 1, byte);
 		}
 		break;
 	    
 	    case 0xE:
-		// ИК57
-		ik57_W(addr & 0x0f, byte);
+			// ИК57
+			ik57_W(addr & 0x0f, byte);
 		break;
 	    
 	    case 0xF:
-		// ПЗУ - записывать нельзя
+			// ПЗУ - записывать нельзя
 		break;
 	}
     }

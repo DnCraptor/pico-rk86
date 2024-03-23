@@ -9,7 +9,12 @@
 #include "vg75.h"
 #include "xprintf.h"
 
+#if MODEL==MICROSHA
+#define TMP_FILE "\\microsha\\~tape.tmp"
+#else
 #define TMP_FILE "\\rk86\\~tape.tmp"
+#endif
+
 static uint8_t tape_buf[0x1000];
 
 #define IN_SYNC_COUNT	16

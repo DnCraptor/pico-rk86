@@ -165,6 +165,8 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
         BEEPER_PIN=28
 
         #MNGR_DEBUG=1
+        MODEL=MICROSHA
+        #MODEL=RK86
 
         __ets__=1
 )

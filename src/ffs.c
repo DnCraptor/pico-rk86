@@ -1,6 +1,12 @@
 #include "ffs.h"
 
-char BASE_DIR[MAX_WIDTH] = { "\\rk86" };
+char BASE_DIR[MAX_WIDTH] = {
+#if MODEL==MICROSHA
+    "\\microsha"
+#else
+    "\\rk86"
+#endif
+};
 
 #if FFS
 #ifdef __ets__

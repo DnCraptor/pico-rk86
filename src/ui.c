@@ -166,7 +166,11 @@ const char* ui_input_text(const char *comment, const char *_text, uint8_t max_le
     screen.cursor_x=EDIT_X+pos;
     screen.cursor_y=EDIT_Y;
     ui_clear();
-    ui_header("RADIO-86RK -->");
+    #if MODEL==MICROSHA
+        ui_header("MICROSHA -->");
+    #else
+        ui_header("RADIO-86RK -->");
+    #endif
     ui_draw_text(10, 8, comment);
     ui_draw_text(EDIT_X, EDIT_Y, text);
     while (1)
@@ -205,7 +209,11 @@ const char* ui_input_text(const char *comment, const char *_text, uint8_t max_le
 
 int8_t ui_yes_no(const char *comment) {
     ui_clear();
-    ui_header("RADIO-86RK -->");
+    #if MODEL==MICROSHA
+        ui_header("MICROSHA -->");
+    #else
+        ui_header("RADIO-86RK -->");
+    #endif
     ui_draw_text(10, 8, comment);
     ui_draw_text(10, 10, "NO\nYes\n");
     return ui_select(2);

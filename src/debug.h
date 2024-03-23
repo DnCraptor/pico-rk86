@@ -1,6 +1,10 @@
 #pragma once
 
+#if MODEL==MICROSHA
+#define DEBUG_LOG "\\microsha.log"
+#else
 #define DEBUG_LOG "\\rk86.log"
+#endif
 
 #include "_ansi.h"
 int	snprintf (char *__restrict, unsigned int size, const char *__restrict, ...) _ATTRIBUTE ((__format__ (__printf__, 3, 4)));

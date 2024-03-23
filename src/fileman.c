@@ -97,7 +97,12 @@ reread:
 	qsort (files_info, files_count, sizeof(file_info_t), m_comp);
     // Рисуем
     ui_clear();
-    ui_header("RADIO-86RK -->");
+    
+    #if MODEL==MICROSHA
+        ui_header("MICROSHA -->");
+    #else
+        ui_header("RADIO-86RK -->");
+    #endif
     if (files_count == 0) {
 		ui_draw_text(10, 10, "No files !");
 		ui_sleep(1000);
