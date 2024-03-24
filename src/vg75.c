@@ -7,6 +7,7 @@
 #include "xlat.h"
 #include "main.h"
 #include "graphics.h"
+#include "sgm_rom.h"
 
 struct screen screen;
 
@@ -361,34 +362,37 @@ uint8_t* tv_data_line(void)
 }
 
 
-void vg75_init(uint8_t *vram)
-{
+void vg75_init(uint8_t *vram) {
     uint8_t i;
+    screen.screen_w = 78;
+    screen.screen_h = 30;
+    screen.underline_y = 7;
+    screen.char_h = 8;
+    screen.attr_visible = 0;
+    screen.x_offset = 4;
+    screen.y_offset = 8;
+    screen.cursor_x = 0;
+    screen.cursor_y = 0;
+    screen.cursor_type = 0;
+    screen.dma_burst = 1;
+    screen.vram = vram;
+	graphics_set_textbuffer(screen.vram);
+    screen.overlay_timer = 0;
     
-    screen.screen_w=78;
-    screen.screen_h=30;
-    screen.underline_y=7;
-    screen.char_h=8;
-    screen.attr_visible=0;
-    screen.x_offset=4;
-    screen.y_offset=8;
-    screen.cursor_x=0;
-    screen.cursor_y=0;
-    screen.cursor_type=0;
-    screen.dma_burst=1;
-    screen.vram=vram;
-	graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
-    screen.overlay_timer=0;
-    
-    txt=vram;
+    txt = vram;
     
     // Копируем в буфера пустую строку (в ней синхра)
     for (i = 0; i < N_BUFS; i++)
-	ets_memcpy(buf[i], tv_empty_line, 64);
+		ets_memcpy(buf[i], tv_empty_line, 64);
     
     // Инитим знакогенератор в ОЗУ
-    ets_memcpy(zkg[0], zkg_rom, 1024);
-    ets_memset(zkg[1], 0x00, 1024);
+	#if MODEL==MICROSHA
+		ets_memcpy(zkg[0], sgm_rom, 1024);
+		ets_memcpy(zkg[1], sgm_rom + 1024, 1024);
+	#else
+    	ets_memcpy(zkg[0], zkg_rom, 1024);
+    	ets_memset(zkg[1], 0x00, 1024);
+	#endif
     ets_memset(zkg[2], 0x00, 1024);
     ets_memset(zkg[3], 0x00, 1024);
 }
