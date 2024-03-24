@@ -47,7 +47,7 @@ uint8_t i8080_hal_memory_read_byte(int addr) {
 #if MODEL==MICROSHA
 	    case 0x8:
 	    case 0xB:
-			// extRom
+			// free
 			return 0;
 	    case 0xC: // C000-C7FF ? + ppi2 C800-CFFF
 			// ВВ55 внутренняя
@@ -65,12 +65,10 @@ uint8_t i8080_hal_memory_read_byte(int addr) {
 		    // ВГ75
 		    return vg75_R(addr & 1);
 	    case 0xE:
-    		// ПЗУ? вместо ИК57 (ИК57 никто не читает)
-	    	return ROM[addr & 0x1FFF];
+    		return 0xFF;
 	    case 0xF:
 			if (addr < 0x8F00) {
-				//printf("i8080_hal_memory_read_byte ROM[%04Xh] %02Xh", addr & 0x1FFF, ROM[addr & 0x1FFF]);
-				return ROM[addr & 0x1FFF];
+				return 0xFF;
 			}
     		return mikrosha_rom[addr - 0xF800];
 #else
@@ -127,7 +125,6 @@ void i8080_hal_memory_write_byte(int addr, int byte) {
 					// TODO: 8253
 					break;
 				}
-	    	case 0xE:
 				// ВГ75 + шрифты
 				if (addr & (1 << 10))	// A10 - переключатель ВГ75/шрифт
 				{
@@ -140,7 +137,6 @@ void i8080_hal_memory_write_byte(int addr, int byte) {
 			    	// ВГ75
 		    		vg75_W(addr & 1, byte);
 				}
-				break;
 #if MODEL==MICROSHA
 #else
 	    	case 0x8:
@@ -173,7 +169,6 @@ void i8080_hal_memory_write_byte(int addr, int byte) {
 				ik57_W(addr & 0x0f, byte);
 				break;
 #endif
-	    	case 0xF:
 			default:
 				// ПЗУ - записывать нельзя
 				break;

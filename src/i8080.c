@@ -36,8 +36,10 @@
 #include <inttypes.h>
 #include <ets.h>
 
+#ifdef SUPPRES_DISASM
 #undef printf
 #define printf(...)
+#endif
 
 #define RD_BYTE(addr) i8080_hal_memory_read_byte(addr)
 #define RD_WORD(addr) i8080_hal_memory_read_word(addr)
