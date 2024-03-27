@@ -12,4 +12,5 @@
 
 #define RGB888(r, g, b) ((r<<16) | (g << 8 ) | b )
 
-extern int paletteId;
+extern unsigned char paletteId;
+void change_color(void);

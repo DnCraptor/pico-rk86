@@ -144,30 +144,33 @@ uint32_t ps2get_raw_code(); // TODO: remap?
 #include "ps2_rk.h"
 
 uint16_t ps2_read(void) {
+	static uint16_t tcc = 0;
+	uint16_t w;
+	if (tcc) {
+		w = tcc | 0x8000;
+		tcc = 0;
+		return w;
+	}
 	if (nespad_state2 && !nespad_state) nespad_state = nespad_state2;
 	if (nespad_state) {
 		if (nespad_state & DPAD_RIGHT) {
-			return PS2_RIGHT;
+			tcc = PS2_RIGHT;
+		} else if (nespad_state & DPAD_LEFT) {
+			tcc = PS2_LEFT;
+		} else if (nespad_state & DPAD_UP) {
+			tcc = PS2_UP;
+		} else if (nespad_state & DPAD_DOWN) {
+			tcc = PS2_DOWN;
+		} else if (nespad_state & DPAD_START) {
+			tcc = PS2_ENTER;
+		} else if (nespad_state & DPAD_SELECT) {
+			tcc = PS2_SPACE;
 		}
-		if (nespad_state & DPAD_LEFT) {
-			return PS2_LEFT;
-		}
-		if (nespad_state & DPAD_UP) {
-			return PS2_UP;
-		}
-		if (nespad_state & DPAD_DOWN) {
-			return PS2_DOWN;
-		}
-		if (nespad_state & DPAD_START) {
-			return PS2_ENTER;
-		}
-		if (nespad_state & DPAD_SELECT) {
-			return PS2_SPACE;
-		}
+		return tcc;
 	}
-	uint16_t w = (uint16_t)ps2get_raw_code() & 0xFFFF;
+	w = (uint16_t)ps2get_raw_code() & 0xFFFF;
 	if (w & 0xF000) w = (w & ~0x7000);
-	if (w) printf("ps2_read: %04Xh", w);
+	//if (w) printf("ps2_read: %04Xh", w);
 	return w;
 }
 

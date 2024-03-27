@@ -351,9 +351,7 @@ int main() {
         	        i8080_jump(0xF800);
         	        break;
 				case PS2_PRINT:
-		            // WiFi
-		        /// TODO: USB    reboot(0x55AA55AA);
-                    paletteId = paletteId == 8 ? 0x1E : 8;
+                    change_color();
 		            break;
 				case PS2_SCROLL:
 		            // Переключатель турбо

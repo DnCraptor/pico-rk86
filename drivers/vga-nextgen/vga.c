@@ -14,7 +14,15 @@
 #include "zkg.h"
 #include "vg75.h"
 
-int paletteId = 8;
+static int paletteIdx = 0;
+static const unsigned char const palletes[] = { 8, 0x1E, 0xBC, 0xBE, 16 };
+unsigned char paletteId = 8;
+
+void change_color(void) {
+    paletteIdx++;
+    if (paletteIdx >= sizeof(palletes)) paletteIdx = 0;
+    paletteId = palletes[paletteIdx];
+}
 
 uint16_t pio_program_VGA_instructions[] = {
     //     .wrap_target

@@ -10,6 +10,7 @@
 #include "zkg.h"
 #include "xprintf.h"
 #include "fileman.h"
+#include "vga.h"
 
 bool menu_fileman(void)
 {
@@ -90,8 +91,8 @@ again:
     ui_draw_list(
 		"1. (  F11 )  Return to the monitor (no cleanup)\n"
 		"2. (  F12 )  File manager\n"
-		"3. (PrnScr)  Full reset\n"
-		"4. (Pause )  Switch to USB mode\n"
+		"3. (Pause )  Full reset\n"
+		"4. (PrnSrn)  Change color (palleter)\n"
 	);
     ui_draw_text(10, 16,
 		"Keyboard mapping:\n"
@@ -127,8 +128,7 @@ again:
 	    i8080_jump(0xF800);
 	    break;
 	case 3:
-	    // Переключиться в режим WiFi
-	    /// TODO: reboot(0x55AA55AA);
+	    change_color();
 	    break;
     }
 }
