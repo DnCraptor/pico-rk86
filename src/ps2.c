@@ -146,27 +146,36 @@ uint32_t ps2get_raw_code(); // TODO: remap?
 uint16_t ps2_read(void) {
 	static uint16_t tcc = 0;
 	uint16_t w;
+	if (nespad_state2 && !nespad_state) nespad_state = nespad_state2;
+	if (nespad_state) {
+		if (nespad_state & DPAD_RIGHT) {
+			w = PS2_RIGHT;
+		} else if (nespad_state & DPAD_LEFT) {
+			w = PS2_LEFT;
+		} else if (nespad_state & DPAD_UP) {
+			w = PS2_UP;
+		} else if (nespad_state & DPAD_DOWN) {
+			w = PS2_DOWN;
+		} else if (nespad_state & DPAD_A) {
+			w = PS2_ENTER;
+		} else if (nespad_state & DPAD_B) {
+			w = PS2_SPACE;
+		} else if (nespad_state & DPAD_START && nespad_state & DPAD_SELECT) {
+			w = PS2_ESC;
+		} else if (nespad_state & DPAD_START) {
+			w = PS2_F12;
+		}
+		if (w != tcc) {
+			w = tcc | 0x8000;
+			tcc = 0;
+			return w;			
+		}
+		return tcc;
+	}
 	if (tcc) {
 		w = tcc | 0x8000;
 		tcc = 0;
 		return w;
-	}
-	if (nespad_state2 && !nespad_state) nespad_state = nespad_state2;
-	if (nespad_state) {
-		if (nespad_state & DPAD_RIGHT) {
-			tcc = PS2_RIGHT;
-		} else if (nespad_state & DPAD_LEFT) {
-			tcc = PS2_LEFT;
-		} else if (nespad_state & DPAD_UP) {
-			tcc = PS2_UP;
-		} else if (nespad_state & DPAD_DOWN) {
-			tcc = PS2_DOWN;
-		} else if (nespad_state & DPAD_START) {
-			tcc = PS2_ENTER;
-		} else if (nespad_state & DPAD_SELECT) {
-			tcc = PS2_SPACE;
-		}
-		return tcc;
 	}
 	w = (uint16_t)ps2get_raw_code() & 0xFFFF;
 	if (w & 0xF000) w = (w & ~0x7000);
