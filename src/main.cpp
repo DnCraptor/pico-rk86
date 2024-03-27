@@ -50,10 +50,6 @@ void inInit(uint gpio) {
     gpio_pull_up(gpio);
 }
 
-void nespad_update() {
- 
-}
-
 extern "C" uint8_t RAM[0x8000];
 
 void __time_critical_func(render_core)() {
@@ -85,7 +81,7 @@ void __time_critical_func(render_core)() {
         if (tick >= last_input_tick + frame_tick * 5) {
             nespad_read();
             last_input_tick = tick;
-            nespad_update();
+            //nespad_update();
         }
         tick = time_us_64();
         tight_loop_contents();
@@ -232,6 +228,7 @@ int main() {
     bool win = false;
     graphics_set_textbuffer(screen.vram);
     graphics_set_mode(TEXTMODE_DEFAULT);
+    uint16_t pc = 0;
     while(true) {
         uint32_t T;
         int32_t dT = 0;
@@ -246,9 +243,8 @@ int main() {
         sec_cycles += takts;
         if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
-        //    printf("Speed: %d; screen.vram: %04Xh; turbo: %d", sec_cycles, screen.vram - RAM, turbo);
             if (i8080_takts_in_ms != 1)
-                snprintf((char*)screen.vram, 16, "%d %d*%d", sec_cycles, screen.screen_w, screen.screen_h);
+                snprintf((char*)screen.vram, 64, "%d %d*%d %02X %04X", sec_cycles, screen.screen_w, screen.screen_h, paletteId, pc);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;
@@ -266,6 +262,7 @@ int main() {
         if (win) {
 	        // Win нажата - обрабатываем спец-команды
 	        uint16_t c = ps2_read();
+            if (c > 0) pc = c;
 	        switch (c) {
                 case 0:
                     break;
@@ -298,9 +295,10 @@ int main() {
 	    } else {
 	        // Win не нажата
 	        uint16_t c;
-	        bool rst=false;
+	        bool rst = false;
     	    ps2_leds(kbd_rus(), true, !i8080_takts_in_ms);
     	    c = keymap_periodic();
+            if (c > 0) pc = c;
     	    switch (c) {
     		    case 0:
     		        break;
@@ -355,6 +353,7 @@ int main() {
 				case PS2_PRINT:
 		            // WiFi
 		        /// TODO: USB    reboot(0x55AA55AA);
+                    paletteId = paletteId == 8 ? 0x1E : 8;
 		            break;
 				case PS2_SCROLL:
 		            // Переключатель турбо

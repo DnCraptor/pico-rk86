@@ -14,6 +14,8 @@
 #include "zkg.h"
 #include "vg75.h"
 
+int paletteId = 8;
+
 uint16_t pio_program_VGA_instructions[] = {
     //     .wrap_target
     0x6008, //  0: out    pins, 8
@@ -137,7 +139,7 @@ void __time_critical_func() dma_handler_VGA() {
             // указатель откуда начать считывать символы
             uint8_t* text_buffer_line = &text_buffer[ln * screen.screen_w];
             // считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
-            uint16_t* color = &txt_palette_fast[8]; // 8 GREEN on BLACK (11 наоборот)
+            uint16_t* color = &txt_palette_fast[paletteId]; // 8 GREEN on BLACK (11 наоборот)
             for (int x = 0; x < screen.screen_w; x++) {
                 // из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = z[*text_buffer_line++];
