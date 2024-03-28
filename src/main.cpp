@@ -151,7 +151,7 @@ extern "C" uint16_t rk_by_at(uint16_t at) {
 }
 
 static const uint32_t freq = 366 * KHZ;
-static int i8080_takts_in_ms = 1;
+static float i8080_takts_in_ms = 1.98;
 
 int main() {
     hw_set_bits(&vreg_and_chip_reset_hw->vreg, VREG_AND_CHIP_RESET_VREG_VSEL_BITS);
@@ -243,8 +243,8 @@ int main() {
         sec_cycles += takts;
         if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
-            if (i8080_takts_in_ms != 1)
-                snprintf((char*)screen.vram, 64, "%d %d*%d %02X %04X", sec_cycles, screen.screen_w, screen.screen_h, paletteId, pc);
+            if (i8080_takts_in_ms != 1.98)
+                snprintf((char*)screen.vram, 64, "%d %d*%d %f", sec_cycles, screen.screen_w, screen.screen_h, i8080_takts_in_ms);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;
@@ -355,8 +355,8 @@ int main() {
 		            break;
 				case PS2_SCROLL:
 		            // Переключатель турбо
-		            i8080_takts_in_ms--;
-                    if (i8080_takts_in_ms < 0) i8080_takts_in_ms = 3;
+		            i8080_takts_in_ms += 0.33;
+                    if (i8080_takts_in_ms < 0) i8080_takts_in_ms = 3.30;
 		            break;
 				case PS2_L_WIN:
 		        case PS2_R_WIN:
