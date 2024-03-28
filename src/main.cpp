@@ -243,7 +243,7 @@ int main() {
         sec_cycles += takts;
         if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
-            if (i8080_takts_in_ms != 1.98)
+            if (i8080_takts_in_ms < 1.97 || i8080_takts_in_ms > 1.99)
                 snprintf((char*)screen.vram, 64, "%d %d*%d %f", sec_cycles, screen.screen_w, screen.screen_h, i8080_takts_in_ms);
             //kbd_dump();
             sec_cycles = 0;
@@ -356,7 +356,7 @@ int main() {
 				case PS2_SCROLL:
 		            // Переключатель турбо
 		            i8080_takts_in_ms += 0.33;
-                    if (i8080_takts_in_ms < 0) i8080_takts_in_ms = 3.30;
+                    if (i8080_takts_in_ms > 3.33) i8080_takts_in_ms = 0;
 		            break;
 				case PS2_L_WIN:
 		        case PS2_R_WIN:
