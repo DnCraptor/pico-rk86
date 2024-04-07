@@ -145,13 +145,62 @@ void __time_critical_func() dma_handler_VGA() {
             uint8_t ln = visible_line >> 3;
         	const uint8_t* z = zkg[0] + (l << 7);
             // указатель откуда начать считывать символы
-            uint8_t* text_buffer_line = &text_buffer[ln * screen.screen_w];
+            uint8_t* text_buffer_line = &text_buffer[ln * screen.screen_w]; // + число упр. символов?
             // считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
             uint16_t* color = &txt_palette_fast[paletteId]; // 8 GREEN on BLACK (11 наоборот)
             bool blink = (frame_number % 50 > 25) == 0;
             for (int x = 0; x < screen.screen_w; x++) {
-                // из таблицы символов получаем "срез" текущего символа
-                uint8_t glyph_pixels = z[*text_buffer_line++];
+                char c = *text_buffer_line++;
+                
+                if (c & 0b10000000) {
+                    if (c & 0b11000000) { // символьный атрибут
+                        char pg = (c >> 2) & 0b00001111; // псевдографика
+                        bool b = (c >> 1) & 1; // мигание
+                        bool h = c & 1; // высокая яркость
+                        switch(pg) {
+                            case 0b0000:
+                            case 0b0001:
+                            case 0b0010:
+                            case 0b0011:
+                            case 0b0100:
+                            case 0b0101:
+                            case 0b0110:
+                            case 0b0111:
+                            case 0b1000:
+                            case 0b1001:
+                            case 0b1010:
+                            case 0b1011:
+                            case 0b1100: { // специальный код
+                                switch(c & 3) {
+                                    case 0: // конец строки
+                                    case 1: // конец строки, стоп ПДП
+                                    case 2: // конец экрана
+                                    case 3: // конец экрана, стоп ПДП
+                                    break;
+                                }
+                                break;
+                            }
+                            case 0b1101:
+                            case 0b1110:
+                            case 0b1111:
+                            break;
+                        }
+                    } else { // атрибут поля?
+                        bool u = (c >> 5) & 1; // инверсия
+                        // 4 ??
+                        bool gpa1 = (c >> 3) & 1; // ?
+                        bool gpa0 = (c >> 2) & 1; // ?
+                        bool b = (c >> 1) & 1; // мигание
+                        bool h = c & 1; // высокая яркость
+                    }
+                    if (screen.attr_visible) {
+                        c = 0; // empty space
+                    } else {
+                        c = *text_buffer_line++; // ignore attribute
+                    }
+                }
+                // из таблицы символов получаем горизонтальный "срез" текущего символа
+                uint8_t glyph_pixels = z[c];
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
                 bool cursor_pos = ln == screen.cursor_y && x == screen.cursor_x;
                 bool cur_b = (screen.cursor_type == 2 || (screen.cursor_type == 0 && blink));

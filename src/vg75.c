@@ -164,17 +164,15 @@ static void next_line(void)
 		    line_attr[x]=(flags & 0xFC) | (c & 0x03);	// используем общие аттрибуты, но заменяем в них B и H
 		    x++;
 		}
-	    } else
-	    {
-		// Аттрибут
-		flags=c & 0x3F;
-		if (screen.attr_visible)
-		{
-		    // Аттрибут видимый - отображаем как символ 0x00
-		    line_text[x]=0x00;
-		    line_attr[x]=flags;
-		    x++;
-		}
+	    } else {
+			// Аттрибут
+			flags = c & 0x3F;
+			if (screen.attr_visible) {
+		    	// Аттрибут видимый - отображаем как символ 0x00
+		    	line_text[x]=0x00;
+		    	line_attr[x]=flags;
+		    	x++;
+			}
 	    }
 	}
     }
