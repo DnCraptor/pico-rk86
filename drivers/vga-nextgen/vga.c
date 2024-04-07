@@ -174,9 +174,11 @@ void __time_critical_func() dma_handler_VGA() {
                                 switch(c & 3) {
                                     case 0: // конец строки
                                     case 1: // конец строки, стоп ПДП
+                                    ///    overline++; // перевод строки
+                                    ///    return;
                                     case 2: // конец экрана
                                     case 3: // конец экрана, стоп ПДП
-                                    break;
+                                        break;
                                 }
                                 break;
                             }
@@ -193,11 +195,11 @@ void __time_critical_func() dma_handler_VGA() {
                         bool b = (c >> 1) & 1; // мигание
                         bool h = c & 1; // высокая яркость
                     }
-                    if (screen.attr_visible) {
-                        c = 0; // empty space
-                    } else {
-                        c = *text_buffer_line++; // ignore attribute
-                    }
+                //    if (screen.attr_visible) {
+                //        c = 0; // empty space
+                //    } else {
+                //        c = *text_buffer_line++; // ignore attribute
+                //    }
                 }
                 // из таблицы символов получаем горизонтальный "срез" текущего символа
                 uint8_t glyph_pixels = z[c];
