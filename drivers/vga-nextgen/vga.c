@@ -148,26 +148,27 @@ void __time_critical_func() dma_handler_VGA() {
             uint8_t* text_buffer_line = &text_buffer[ln * screen.screen_w];
             // считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
             uint16_t* color = &txt_palette_fast[paletteId]; // 8 GREEN on BLACK (11 наоборот)
+            bool blink = (frame_number % 50 > 25) == 0;
             for (int x = 0; x < screen.screen_w; x++) {
                 // из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = z[*text_buffer_line++];
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
-                bool blink = (frame_number % 50 > 25) == 0;
-                bool cur_b = (screen.cursor_type == 3 || (screen.cursor_type == 1 && blink)) &&
-                             ln == screen.cursor_y && x == screen.cursor_x;
-                if (cur_b && l >= 7 && l <= 8) {
+                bool cursor_pos = ln == screen.cursor_y && x == screen.cursor_x;
+                bool cur_b = (screen.cursor_type == 2 || (screen.cursor_type == 0 && blink));
+                bool cur_l = (screen.cursor_type == 3 || (screen.cursor_type == 1 && blink));
+                if (cur_l && cursor_pos && l >= 7 && l <= 8) {
                     uint8_t c = color[1];
+                //    *output_buffer_8bit++ = c;
+                //    *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
-                    *output_buffer_8bit++ = c;
-                    *output_buffer_8bit++ = c;
-                } else if (cur_b) {
-                    *output_buffer_8bit++ = color[!((glyph_pixels >> 7) & 1)];
-                    *output_buffer_8bit++ = color[!((glyph_pixels >> 6) & 1)];
+                } else if (cur_b && cursor_pos) {
+                //    *output_buffer_8bit++ = color[!((glyph_pixels >> 7) & 1)];
+                //    *output_buffer_8bit++ = color[!((glyph_pixels >> 6) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 5) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 4) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 3) & 1)];
@@ -175,8 +176,8 @@ void __time_critical_func() dma_handler_VGA() {
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 1) & 1)];
                     *output_buffer_8bit++ = color[!(glyph_pixels & 1)];
                 } else {
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 7) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 6) & 1];
+                //    *output_buffer_8bit++ = color[(glyph_pixels >> 7) & 1];
+                //    *output_buffer_8bit++ = color[(glyph_pixels >> 6) & 1];
                     *output_buffer_8bit++ = color[(glyph_pixels >> 5) & 1];
                     *output_buffer_8bit++ = color[(glyph_pixels >> 4) & 1];
                     *output_buffer_8bit++ = color[(glyph_pixels >> 3) & 1];
