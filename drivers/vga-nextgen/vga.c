@@ -55,7 +55,6 @@ static int dma_chan_ctrl;
 static int dma_chan;
 
 static uint8_t* graphics_buffer = NULL;
-uint8_t* text_buffer = NULL;
 static uint graphics_buffer_width = 0;
 static uint graphics_buffer_height = 0;
 static int graphics_buffer_shift_x = 0;
@@ -88,6 +87,7 @@ void __time_critical_func() dma_handler_VGA() {
     static uint32_t frame_number = 0;
     static uint32_t screen_line = 0;
     static uint8_t* input_buffer = NULL;
+    static uint8_t text_buffer_line[96] = { 0 };
     screen_line++;
 
     if (screen_line == N_lines_total) {
@@ -143,64 +143,76 @@ void __time_critical_func() dma_handler_VGA() {
             uint16_t l = visible_line & 7;
             // Номер строки
             uint8_t ln = visible_line >> 3;
+            if (l == 0) { // prepare a line to scan it later
+                int x = 0;
+                for (; x < screen.screen_w; x++) {
+                    char c = *input_buffer++;
+                    if (c & 0b10000000) {
+                        if (c & 0b11000000) { // символьный атрибут
+                            char pg = (c >> 2) & 0b00001111; // псевдографика
+                            bool b = (c >> 1) & 1; // мигание
+                            bool h = c & 1; // высокая яркость
+                            switch(pg) {
+                                case 0b0000:
+                                case 0b0001:
+                                case 0b0010:
+                                case 0b0011:
+                                case 0b0100:
+                                case 0b0101:
+                                case 0b0110:
+                                case 0b0111:
+                                case 0b1000:
+                                case 0b1001:
+                                case 0b1010:
+                                case 0b1011:
+                                case 0b1100: { // специальный код
+                                    switch(c & 3) {
+                                        case 0: // конец строки
+                                            goto strend;
+                                        case 1: // конец строки, стоп ПДП
+                                            goto strendStopDMA;
+                                        case 2: // конец экрана
+                                        case 3: // конец экрана, стоп ПДП
+                                        break;
+                                    }
+                                    break;
+                                }
+                                case 0b1101:
+                                case 0b1110:
+                                case 0b1111:
+                                break;
+                            }
+                        } else { // атрибут поля?
+                            bool u = (c >> 5) & 1; // подчёркивание
+                            bool r = (c >> 4) & 1; // инверсия
+                            bool gpa1 = (c >> 3) & 1; // ?
+                            bool gpa0 = (c >> 2) & 1; // ?
+                            bool b = (c >> 1) & 1; // мигание
+                            bool h = c & 1; // высокая яркость
+                        }
+                    //    if (screen.attr_visible) {
+                    //        c = 0; // empty space
+                    //    } else {
+                    //        c = *text_buffer_line++; // ignore attribute
+                    //    }
+                    }
+                    text_buffer_line[x] = c;
+                }
+strendStopDMA:
+// TODO: stop DMA
+strend:
+                for (; x < 96; x++) {
+                    text_buffer_line[x] = 0;
+                }
+            }
         	const uint8_t* z = zkg[0] + (l << 7);
             // указатель откуда начать считывать символы
-            uint8_t* text_buffer_line = &text_buffer[ln * screen.screen_w]; // + число упр. символов?
+        // = &text_buffer[ln * screen.screen_w]; // + число упр. символов?
             // считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
             uint16_t* color = &txt_palette_fast[paletteId]; // 8 GREEN on BLACK (11 наоборот)
             bool blink = (frame_number % 50 > 25) == 0;
             for (int x = 0; x < screen.screen_w; x++) {
-                char c = *text_buffer_line++;
-                
-                if (c & 0b10000000) {
-                    if (c & 0b11000000) { // символьный атрибут
-                        char pg = (c >> 2) & 0b00001111; // псевдографика
-                        bool b = (c >> 1) & 1; // мигание
-                        bool h = c & 1; // высокая яркость
-                        switch(pg) {
-                            case 0b0000:
-                            case 0b0001:
-                            case 0b0010:
-                            case 0b0011:
-                            case 0b0100:
-                            case 0b0101:
-                            case 0b0110:
-                            case 0b0111:
-                            case 0b1000:
-                            case 0b1001:
-                            case 0b1010:
-                            case 0b1011:
-                            case 0b1100: { // специальный код
-                                switch(c & 3) {
-                                    case 0: // конец строки
-                                    case 1: // конец строки, стоп ПДП
-                                    ///    overline++; // перевод строки
-                                    ///    return;
-                                    case 2: // конец экрана
-                                    case 3: // конец экрана, стоп ПДП
-                                        break;
-                                }
-                                break;
-                            }
-                            case 0b1101:
-                            case 0b1110:
-                            case 0b1111:
-                            break;
-                        }
-                    } else { // атрибут поля?
-                        bool u = (c >> 5) & 1; // инверсия
-                        // 4 ??
-                        bool gpa1 = (c >> 3) & 1; // ?
-                        bool gpa0 = (c >> 2) & 1; // ?
-                        bool b = (c >> 1) & 1; // мигание
-                        bool h = c & 1; // высокая яркость
-                    }
-                //    if (screen.attr_visible) {
-                //        c = 0; // empty space
-                //    } else {
-                //        c = *text_buffer_line++; // ignore attribute
-                //    }
-                }
+                char c = text_buffer_line[x];
                 // из таблицы символов получаем горизонтальный "срез" текущего символа
                 uint8_t glyph_pixels = z[c];
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
@@ -379,8 +391,8 @@ void graphics_set_mode(enum graphics_mode_t mode) {
 
 void graphics_set_buffer(uint8_t* buffer, const uint16_t width, const uint16_t height) {
     graphics_buffer = buffer;
-    graphics_buffer_width = width;
-    graphics_buffer_height = height;
+    graphics_buffer_width = 320; //width;
+    graphics_buffer_height = 240; //height;
 }
 
 
@@ -392,10 +404,6 @@ void graphics_set_offset(const int x, const int y) {
 void graphics_set_flashmode(const bool flash_line, const bool flash_frame) {
     is_flash_frame = flash_frame;
     is_flash_line = flash_line;
-}
-
-void graphics_set_textbuffer(uint8_t* buffer) {
-    text_buffer = buffer;
 }
 
 void graphics_set_bgcolor(const uint32_t color888) {
@@ -535,12 +543,4 @@ void graphics_init() {
 
     irq_set_enabled(VGA_DMA_IRQ, true);
     dma_start_channel_mask(1u << dma_chan);
-}
-
-
-void clrScr(const uint8_t color) {
-    uint16_t* t_buf = (uint16_t *)text_buffer;
-    int size = TEXTMODE_COLS * TEXTMODE_ROWS;
-
-    while (size--) *t_buf++ = color << 4 | ' ';
 }

@@ -375,7 +375,7 @@ void vg75_init(uint8_t *vram)
     screen.cursor_type=0;
     screen.dma_burst=1;
     screen.vram=vram;
-	graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
+	graphics_set_buffer(screen.vram, screen.screen_w, screen.screen_h);
     screen.overlay_timer=0;
     
     txt=vram;
@@ -485,8 +485,8 @@ void ik57_W(uint8_t A, uint8_t value) {
 		if (ik57.param_n == 4) {
 	    	uint16_t vram_at=(ik57.param[1] << 8) | ik57.param[0];
 	    	ets_printf("IK57: VRAM @%04x", vram_at);
-	   		screen.vram=i8080_hal_memory()+vram_at;
-	    	graphics_set_textbuffer(screen.vram/*, screen.screen_w, screen.screen_h*/);
+	   		screen.vram = i8080_hal_memory() + vram_at;
+	    	graphics_set_buffer(screen.vram, screen.screen_w, screen.screen_h);
 	    	ik57.param_n=0;
 		}
     }

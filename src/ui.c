@@ -228,7 +228,7 @@ void ui_start(void) {
     screen.cursor_y = 99;
     screen.cursor_type = 0;
     screen.vram = (uint8_t*)ui_scr;
-	graphics_set_textbuffer(screen.vram);
+	graphics_set_buffer(screen.vram, 320, 240);
     screen.overlay_timer = 0;
     // Очищаем экран
     ui_clear();
@@ -238,7 +238,7 @@ void ui_stop(void) {
     // Возвращаем экран на место
     save.overlay_timer = 0;
     screen = save;
-	graphics_set_textbuffer(screen.vram);
+	graphics_set_buffer(screen.vram, 320, 240);
 }
 
 void ui_sleep(uint16_t ms) {

@@ -55,10 +55,8 @@ extern "C" uint8_t RAM[0x8000];
 void __time_critical_func(render_core)() {
     const auto buffer = RAM;
     graphics_set_buffer(buffer, 320, 240); // ??
-    graphics_set_textbuffer(buffer);
     multicore_lockout_victim_init();
     graphics_init();
-    graphics_set_textbuffer(buffer);
     graphics_set_bgcolor(0x000000);
     graphics_set_offset(0, 0);
     graphics_set_flashmode(false, false);
@@ -226,7 +224,7 @@ int main() {
     uint32_t sec_T = prev_T;
     uint32_t sec_cycles = 0;
     bool win = false;
-    graphics_set_textbuffer(screen.vram);
+    graphics_set_buffer(screen.vram, 320, 200);
     graphics_set_mode(TEXTMODE_DEFAULT);
     uint16_t pc = 0;
     while(true) {
