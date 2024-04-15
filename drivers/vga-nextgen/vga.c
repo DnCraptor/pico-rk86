@@ -149,6 +149,9 @@ void __time_critical_func() dma_handler_VGA() {
             // считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
             uint16_t* color = &txt_palette_fast[paletteId]; // 8 GREEN on BLACK (11 наоборот)
             bool blink = (frame_number % 50 > 25) == 0;
+            for (int x = 0; x < screen.screen_w; x++) { // отступ
+                *output_buffer_8bit++ = txt_palette_fast[0];
+            }
             for (int x = 0; x < screen.screen_w; x++) {
                 // из таблицы символов получаем "срез" текущего символа
                 uint8_t glyph_pixels = z[*text_buffer_line++];
