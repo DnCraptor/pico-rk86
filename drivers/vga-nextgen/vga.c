@@ -87,7 +87,9 @@ void __time_critical_func() dma_handler_VGA() {
     static uint32_t frame_number = 0;
     static uint32_t screen_line = 0;
     static uint8_t* input_buffer = NULL;
-    static uint8_t text_buffer_line[96] = { 0 };
+    static uint8_t text_buffer_line[96*2] = { 0 };
+    static int pl = -1; // номер предыдущей отрисованой линии внутри строки
+    static uint8_t ap = 0; // атрибут поля
     screen_line++;
 
     if (screen_line == N_lines_total) {
@@ -143,15 +145,18 @@ void __time_critical_func() dma_handler_VGA() {
             uint16_t l = visible_line & 7;
             // Номер строки
             uint8_t ln = visible_line >> 3;
-            if (l == 0) { // prepare a line to scan it later
+            if (l == 0 && pl != l) { // prepare a line to scan it later
                 int x = 0;
+                ap = 0; // TODO: ensure
                 for (; x < screen.screen_w; x++) {
                     char c = *input_buffer++;
+                    char a = 0;
                     if (c & 0b10000000) {
                         if (c & 0b11000000) { // символьный атрибут
                             char pg = (c >> 2) & 0b00001111; // псевдографика
                             bool b = (c >> 1) & 1; // мигание
                             bool h = c & 1; // высокая яркость
+                            a = (b << 1) & h;
                             switch(pg) {
                                 case 0b0000:
                                 case 0b0001:
@@ -183,28 +188,28 @@ void __time_critical_func() dma_handler_VGA() {
                                 break;
                             }
                         } else { // атрибут поля?
-                            bool u = (c >> 5) & 1; // подчёркивание
-                            bool r = (c >> 4) & 1; // инверсия
-                            bool gpa1 = (c >> 3) & 1; // ?
-                            bool gpa0 = (c >> 2) & 1; // ?
-                            bool b = (c >> 1) & 1; // мигание
-                            bool h = c & 1; // высокая яркость
+                            ap = c;
                         }
-                    //    if (screen.attr_visible) {
-                    //        c = 0; // empty space
-                    //    } else {
-                    //        c = *text_buffer_line++; // ignore attribute
-                    //    }
+                        if (screen.attr_visible) {
+                            c = 0; // empty space
+                        } else {
+                            a = 0xFF; // ignore attribute
+                        }
                     }
-                    text_buffer_line[x] = c;
+                    if (a != 0xFF) {
+                        text_buffer_line[x * 2] = c;
+                        text_buffer_line[x * 2 + 1] = a | ap;
+                    }
                 }
 strendStopDMA:
 // TODO: stop DMA
 strend:
                 for (; x < 96; x++) {
-                    text_buffer_line[x] = 0;
+                    text_buffer_line[x * 2] = 0;
+                    text_buffer_line[x * 2 + 1] = 0;
                 }
             }
+            pl = l;
         	const uint8_t* z = zkg[0] + (l << 7);
             // указатель откуда начать считывать символы
         // = &text_buffer[ln * screen.screen_w]; // + число упр. символов?
@@ -215,17 +220,24 @@ strend:
                 *output_buffer_8bit++ = txt_palette_fast[0];
             }
             for (int x = 0; x < screen.screen_w; x++) {
-                char c = text_buffer_line[x];
+                char c = text_buffer_line[x * 2];
+            //    char a = text_buffer_line[x * 2 + 1];
+            //    bool u = (a >> 5) & 1; // подчёркивание
+            //    bool r = (a >> 4) & 1; // инверсия
+            //    bool gpa1 = (a >> 3) & 1; // ?
+            //    bool gpa0 = (a >> 2) & 1; // ?
+            //    bool b = (a >> 1) & 1; // мигание
+            //    bool h = a & 1; // высокая яркость
                 // из таблицы символов получаем горизонтальный "срез" текущего символа
                 uint8_t glyph_pixels = z[c];
+            //    if (r)
+            //        glyph_pixels = ~glyph_pixels;
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
                 bool cursor_pos = ln == screen.cursor_y && x == screen.cursor_x;
                 bool cur_b = (screen.cursor_type == 2 || (screen.cursor_type == 0 && blink));
                 bool cur_l = (screen.cursor_type == 3 || (screen.cursor_type == 1 && blink));
-                if (cur_l && cursor_pos && l >= 7 && l <= 8) {
+                if ((cur_l && cursor_pos) && l >= 7 && l <= 8) {
                     uint8_t c = color[1];
-                //    *output_buffer_8bit++ = c;
-                //    *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
@@ -233,8 +245,6 @@ strend:
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                 } else if (cur_b && cursor_pos) {
-                //    *output_buffer_8bit++ = color[!((glyph_pixels >> 7) & 1)];
-                //    *output_buffer_8bit++ = color[!((glyph_pixels >> 6) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 5) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 4) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 3) & 1)];
@@ -242,14 +252,12 @@ strend:
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 1) & 1)];
                     *output_buffer_8bit++ = color[!(glyph_pixels & 1)];
                 } else {
-                //    *output_buffer_8bit++ = color[(glyph_pixels >> 7) & 1];
-                //    *output_buffer_8bit++ = color[(glyph_pixels >> 6) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 5) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 4) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 3) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 2) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 1) & 1];
-                    *output_buffer_8bit++ = color[glyph_pixels & 1];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 5) & 1)];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 4) & 1)];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 3) & 1)];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 2) & 1)];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 1) & 1)];
+                    *output_buffer_8bit++ = color[(glyph_pixels & 1)];
                 }
             }
             dma_channel_set_read_addr(dma_chan_ctrl, output_buffer, false);
