@@ -160,17 +160,21 @@ uint16_t ps2_read(void) {
 			w = PS2_ENTER;
 		} else if (nespad_state & DPAD_B) {
 			w = PS2_SPACE;
-		} else if (nespad_state & DPAD_START && nespad_state & DPAD_SELECT) {
+		} else if (nespad_state & DPAD_SELECT) {
 			w = PS2_ESC;
 		} else if (nespad_state & DPAD_START) {
 			w = PS2_F12;
 		}
-		if (w != tcc) {
-			w = tcc | 0x8000;
-			tcc = 0;
-			return w;			
+		if (tcc) {
+			if (w != tcc) { // конпка сменилась, надо послать "отжатие"
+				w = tcc | 0x8000;
+				tcc = 0;
+				return w;			
+			}
+			return 0; // нажата та же кнопка, ничего не возвращаем
 		}
-		return tcc;
+		tcc = w; // запоминаем, что нажато было
+		return w;
 	}
 	if (tcc) {
 		w = tcc | 0x8000;

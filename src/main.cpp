@@ -242,7 +242,7 @@ int main() {
         if ( (T - sec_T) >= 1000000) {
             // Прошла секунда
             if (i8080_takts_in_ms < 1.97 || i8080_takts_in_ms > 1.99)
-                snprintf((char*)screen.vram, 64, "%d %d*%d %04Xh", sec_cycles, screen.screen_w, screen.screen_h, nespad_state);
+                snprintf((char*)screen.vram, 64, "%d %d*%d %04X", sec_cycles, screen.screen_w, screen.screen_h, nespad_state);
             //kbd_dump();
             sec_cycles = 0;
             sec_T = T;
