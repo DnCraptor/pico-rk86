@@ -87,12 +87,13 @@ void __time_critical_func() dma_handler_VGA() {
     static uint32_t frame_number = 0;
     static uint32_t screen_line = 0;
     static uint8_t* input_buffer = NULL;
-    static uint8_t text_buffer_line[96*2] = { 0 };
+    static uint8_t text_buffer_line[80*2] = { 0 };
     static int pl = -1; // номер предыдущей отрисованой линии внутри строки
     static uint8_t ap = 0; // атрибут поля
     screen_line++;
 
     if (screen_line == N_lines_total) {
+        ap = 0;
         screen_line = 0;
         frame_number++;
         input_buffer = graphics_buffer;
@@ -147,7 +148,6 @@ void __time_critical_func() dma_handler_VGA() {
             uint8_t ln = visible_line >> 3;
             if (l == 0 && pl != l) { // prepare a line to scan it later
                 int x = 0;
-                ap = 0; // TODO: ensure
                 for (; x < screen.screen_w; x++) {
                     char c = *input_buffer++;
                     char a = 0;
@@ -177,7 +177,8 @@ void __time_critical_func() dma_handler_VGA() {
                                         case 1: // конец строки, стоп ПДП
                                             goto strendStopDMA;
                                         case 2: // конец экрана
-                                        case 3: // конец экрана, стоп ПДП
+                                        case 3: // конец экрана, стоп 
+                                        //vg75_external_end_of_screen();
                                         break;
                                     }
                                     break;
@@ -197,14 +198,16 @@ void __time_critical_func() dma_handler_VGA() {
                         }
                     }
                     if (a != 0xFF) {
-                        text_buffer_line[x * 2] = c;
-                        text_buffer_line[x * 2 + 1] = a | ap;
+                        int xa = x;
+                        while(xa >= 80) xa -= 80; // заворачиваем буфер на себя
+                        text_buffer_line[xa * 2] = c;
+                        text_buffer_line[xa * 2 + 1] = a | ap;
                     }
                 }
 strendStopDMA:
 // TODO: stop DMA
 strend:
-                for (; x < 96; x++) {
+                for (; x < 80; x++) {
                     text_buffer_line[x * 2] = 0;
                     text_buffer_line[x * 2 + 1] = 0;
                 }
@@ -216,12 +219,14 @@ strend:
             // считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
             uint16_t* color = &txt_palette_fast[paletteId]; // 8 GREEN on BLACK (11 наоборот)
             bool blink = (frame_number % 50 > 25) == 0;
-            for (int x = 0; x < screen.screen_w; x++) { // отступ
-                *output_buffer_8bit++ = txt_palette_fast[0];
-            }
+        //    for (int x = 0; x < 78; x++) { // отступ
+///*output_buffer_8bit++ = txt_palette_fast[0];
+        //    }
             for (int x = 0; x < screen.screen_w; x++) {
-                char c = text_buffer_line[x * 2];
-            //    char a = text_buffer_line[x * 2 + 1];
+                int xa = x;
+                while(xa >= 80) xa -= 80; // заворачиваем буфер на себя
+                char c = text_buffer_line[xa * 2];
+            //    char a = text_buffer_line[xa * 2 + 1];
             //    bool u = (a >> 5) & 1; // подчёркивание
             //    bool r = (a >> 4) & 1; // инверсия
             //    bool gpa1 = (a >> 3) & 1; // ?
