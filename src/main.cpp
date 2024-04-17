@@ -160,6 +160,7 @@ int main() {
     stdio_init_all();
     keyboard_init();
     keyboard_send(0xFF);
+    init_wii();
     nespad_begin(clock_get_hz(clk_sys) / 1000, NES_GPIO_CLK, NES_GPIO_DATA, NES_GPIO_LAT);
 
     nespad_read();
