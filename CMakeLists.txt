@@ -85,6 +85,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
         tinyusb_board
         tinyusb_device
+
+        stdc++
 )
 
 #family_configure_device_example(${PROJECT_NAME} noos)
