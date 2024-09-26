@@ -1,3 +1,17 @@
+# == DO NEVER EDIT THE NEXT LINES for Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.0.0)
+set(toolchainVersion 13_2_Rel1)
+set(picotoolVersion 2.0.0)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
 cmake_minimum_required(VERSION 3.22)
 include(pico_sdk_import.cmake)
 
@@ -8,10 +22,10 @@ option(VGA "Enable VGA" OFF)
 option(TFT "Enable TFT display" OFF)
 option(ILI9341 "Enable TFT ILI9341 display" OFF)
 option(HDMI "Enable HDMI display" OFF)
-option(FLASH_SIZE "Target Flash Size" 2048)
+option(FLASH_SIZE "Target Flash Size" 4096)
 
 if(NOT FLASH_SIZE)
-set(FLASH_SIZE 2048)
+set(FLASH_SIZE 4096)
 endif ()
 
 SET(BUILD_NAME "${PROJECT_NAME}-${FLASH_SIZE}K")
@@ -26,8 +40,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
 
-set(FAMILY rp2040)
-set(BOARD pico_sdk)
+#set(FAMILY rp2040)
+#set(BOARD pico_sdk)
 
 add_subdirectory(drivers/ps2)
 add_subdirectory(drivers/fatfs)
@@ -85,6 +99,8 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
 
         tinyusb_board
         tinyusb_device
+
+        stdc++
 )
 
 #family_configure_device_example(${PROJECT_NAME} noos)
