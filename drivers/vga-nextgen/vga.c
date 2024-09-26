@@ -55,7 +55,6 @@ static int dma_chan_ctrl;
 static int dma_chan;
 
 static uint8_t* graphics_buffer = NULL;
-uint8_t* text_buffer = NULL;
 static uint graphics_buffer_width = 0;
 static uint graphics_buffer_height = 0;
 static int graphics_buffer_shift_x = 0;
@@ -88,9 +87,13 @@ void __time_critical_func() dma_handler_VGA() {
     static uint32_t frame_number = 0;
     static uint32_t screen_line = 0;
     static uint8_t* input_buffer = NULL;
+    static uint8_t text_buffer_line[80*2] = { 0 };
+    static int pl = -1; // номер предыдущей отрисованой линии внутри строки
+    static uint8_t ap = 0; // атрибут поля
     screen_line++;
 
     if (screen_line == N_lines_total) {
+        ap = 0;
         screen_line = 0;
         frame_number++;
         input_buffer = graphics_buffer;
@@ -143,26 +146,103 @@ void __time_critical_func() dma_handler_VGA() {
             uint16_t l = visible_line & 7;
             // Номер строки
             uint8_t ln = visible_line >> 3;
+            if (l == 0 && pl != l) { // prepare a line to scan it later
+                int x = 0;
+                for (; x < screen.screen_w; x++) {
+                    char c = *input_buffer++;
+                    char a = 0;
+                    if (c & 0b10000000) {
+                        if (c & 0b11000000) { // символьный атрибут
+                            char pg = (c >> 2) & 0b00001111; // псевдографика
+                            bool b = (c >> 1) & 1; // мигание
+                            bool h = c & 1; // высокая яркость
+                            a = (b << 1) & h;
+                            switch(pg) {
+                                case 0b0000:
+                                case 0b0001:
+                                case 0b0010:
+                                case 0b0011:
+                                case 0b0100:
+                                case 0b0101:
+                                case 0b0110:
+                                case 0b0111:
+                                case 0b1000:
+                                case 0b1001:
+                                case 0b1010:
+                                case 0b1011:
+                                case 0b1100: { // специальный код
+                                    switch(c & 3) {
+                                        case 0: // конец строки
+                                            goto strend;
+                                        case 1: // конец строки, стоп ПДП
+                                            goto strendStopDMA;
+                                        case 2: // конец экрана
+                                        case 3: // конец экрана, стоп 
+                                        //vg75_external_end_of_screen();
+                                        break;
+                                    }
+                                    break;
+                                }
+                                case 0b1101:
+                                case 0b1110:
+                                case 0b1111:
+                                break;
+                            }
+                        } else { // атрибут поля?
+                            ap = c;
+                        }
+                        if (screen.attr_visible) {
+                            c = 0; // empty space
+                        } else {
+                            a = 0xFF; // ignore attribute
+                        }
+                    }
+                    if (a != 0xFF) {
+                        int xa = x;
+                        while(xa >= 80) xa -= 80; // заворачиваем буфер на себя
+                        text_buffer_line[xa * 2] = c;
+                        text_buffer_line[xa * 2 + 1] = a | ap;
+                    }
+                }
+strendStopDMA:
+// TODO: stop DMA
+strend:
+                for (; x < 80; x++) {
+                    text_buffer_line[x * 2] = 0;
+                    text_buffer_line[x * 2 + 1] = 0;
+                }
+            }
+            pl = l;
         	const uint8_t* z = zkg[0] + (l << 7);
             // указатель откуда начать считывать символы
-            uint8_t* text_buffer_line = &text_buffer[ln * screen.screen_w];
+        // = &text_buffer[ln * screen.screen_w]; // + число упр. символов?
             // считываем из быстрой палитры начало таблицы быстрого преобразования 2-битных комбинаций цветов пикселей
             uint16_t* color = &txt_palette_fast[paletteId]; // 8 GREEN on BLACK (11 наоборот)
             bool blink = (frame_number % 50 > 25) == 0;
-            for (int x = 0; x < screen.screen_w; x++) { // отступ
-                *output_buffer_8bit++ = txt_palette_fast[0];
-            }
+        //    for (int x = 0; x < 78; x++) { // отступ
+///*output_buffer_8bit++ = txt_palette_fast[0];
+        //    }
             for (int x = 0; x < screen.screen_w; x++) {
-                // из таблицы символов получаем "срез" текущего символа
-                uint8_t glyph_pixels = z[*text_buffer_line++];
+                int xa = x;
+                while(xa >= 80) xa -= 80; // заворачиваем буфер на себя
+                char c = text_buffer_line[xa * 2];
+            //    char a = text_buffer_line[xa * 2 + 1];
+            //    bool u = (a >> 5) & 1; // подчёркивание
+            //    bool r = (a >> 4) & 1; // инверсия
+            //    bool gpa1 = (a >> 3) & 1; // ?
+            //    bool gpa0 = (a >> 2) & 1; // ?
+            //    bool b = (a >> 1) & 1; // мигание
+            //    bool h = a & 1; // высокая яркость
+                // из таблицы символов получаем горизонтальный "срез" текущего символа
+                uint8_t glyph_pixels = z[c];
+            //    if (r)
+            //        glyph_pixels = ~glyph_pixels;
                 // форма курсора: 0=мигающий блок, 1=мигающий штрих, 2=немигающий блок, 3=немигающий штрих
                 bool cursor_pos = ln == screen.cursor_y && x == screen.cursor_x;
                 bool cur_b = (screen.cursor_type == 2 || (screen.cursor_type == 0 && blink));
                 bool cur_l = (screen.cursor_type == 3 || (screen.cursor_type == 1 && blink));
-                if (cur_l && cursor_pos && l >= 7 && l <= 8) {
+                if ((cur_l && cursor_pos) && l >= 7 && l <= 8) {
                     uint8_t c = color[1];
-                //    *output_buffer_8bit++ = c;
-                //    *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
@@ -170,8 +250,6 @@ void __time_critical_func() dma_handler_VGA() {
                     *output_buffer_8bit++ = c;
                     *output_buffer_8bit++ = c;
                 } else if (cur_b && cursor_pos) {
-                //    *output_buffer_8bit++ = color[!((glyph_pixels >> 7) & 1)];
-                //    *output_buffer_8bit++ = color[!((glyph_pixels >> 6) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 5) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 4) & 1)];
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 3) & 1)];
@@ -179,14 +257,12 @@ void __time_critical_func() dma_handler_VGA() {
                     *output_buffer_8bit++ = color[!((glyph_pixels >> 1) & 1)];
                     *output_buffer_8bit++ = color[!(glyph_pixels & 1)];
                 } else {
-                //    *output_buffer_8bit++ = color[(glyph_pixels >> 7) & 1];
-                //    *output_buffer_8bit++ = color[(glyph_pixels >> 6) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 5) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 4) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 3) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 2) & 1];
-                    *output_buffer_8bit++ = color[(glyph_pixels >> 1) & 1];
-                    *output_buffer_8bit++ = color[glyph_pixels & 1];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 5) & 1)];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 4) & 1)];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 3) & 1)];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 2) & 1)];
+                    *output_buffer_8bit++ = color[((glyph_pixels >> 1) & 1)];
+                    *output_buffer_8bit++ = color[(glyph_pixels & 1)];
                 }
             }
             dma_channel_set_read_addr(dma_chan_ctrl, output_buffer, false);
@@ -331,8 +407,8 @@ void graphics_set_mode(enum graphics_mode_t mode) {
 
 void graphics_set_buffer(uint8_t* buffer, const uint16_t width, const uint16_t height) {
     graphics_buffer = buffer;
-    graphics_buffer_width = width;
-    graphics_buffer_height = height;
+    graphics_buffer_width = 320; //width;
+    graphics_buffer_height = 240; //height;
 }
 
 
@@ -344,10 +420,6 @@ void graphics_set_offset(const int x, const int y) {
 void graphics_set_flashmode(const bool flash_line, const bool flash_frame) {
     is_flash_frame = flash_frame;
     is_flash_line = flash_line;
-}
-
-void graphics_set_textbuffer(uint8_t* buffer) {
-    text_buffer = buffer;
 }
 
 void graphics_set_bgcolor(const uint32_t color888) {
@@ -487,12 +559,4 @@ void graphics_init() {
 
     irq_set_enabled(VGA_DMA_IRQ, true);
     dma_start_channel_mask(1u << dma_chan);
-}
-
-
-void clrScr(const uint8_t color) {
-    uint16_t* t_buf = (uint16_t *)text_buffer;
-    int size = TEXTMODE_COLS * TEXTMODE_ROWS;
-
-    while (size--) *t_buf++ = color << 4 | ' ';
 }
