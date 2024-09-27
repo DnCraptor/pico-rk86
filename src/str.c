@@ -6,6 +6,12 @@
 ///#include <user_interface.h>
 ///#include <mem.h>
 
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+
+#define os_malloc(x) malloc(x)
+#define os_strlen(x) strlen(x)
 
 int is_digit(char c)
 {
@@ -106,13 +112,13 @@ char* ftoa(float num, uint8_t decimals)
     return (char *)buf;
 }
 
-
+/**
 char* itoa(int num)
 {
     os_sprintf(buf, "%d", num);
     return buf;
 }
-
+*/
 
 const char* skip_ws(const char *text)
 {

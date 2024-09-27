@@ -153,9 +153,9 @@ reread:
         if (n >= files_count - off)
 		    n = files_count - off - 1;
 		// Стираем курсор с предыдущего файла
-		ui_scr[PY + 1 + (prev % FILES)][PX + (prev / FILES) * FILES + 1] = 0x80;
+		ui_scr[PY + 1 + (prev % FILES)][PX + (prev / FILES) * FILES + 1] = ' ';//0x80;
 		// Рисуем курсор на новом месте
-		ui_scr[PY + 1 + (n % FILES)][PX + (n / FILES) * FILES + 1] = 0x90;
+		ui_scr[PY + 1 + (n % FILES)][PX + (n / FILES) * FILES + 1] = '>';//0x90;
 		// Запоминаем текущую позицию
 		prev = n;
 		// Обрабатываем нажатия кнопок

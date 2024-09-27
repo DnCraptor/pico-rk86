@@ -1,7 +1,7 @@
 #include "psram_spi.h"
 
 static psram_spi_inst_t psram_spi;
-bool PSRAM_AVAILABLE = false;
+extern bool PSRAM_AVAILABLE;
 
 void init_psram() {
     psram_spi = psram_spi_init_clkdiv(pio0, -1, 2.0, true);
@@ -10,7 +10,7 @@ void init_psram() {
 }
 
 void psram_cleanup() {
-    logMsg("PSRAM cleanup"); // TODO: block mode, ensure diapason
+///    logMsg("PSRAM cleanup"); // TODO: block mode, ensure diapason
     for (uint32_t addr32 = (1ul << 20); addr32 < (2ul << 20); addr32 += 4) {
         psram_write32(&psram_spi, addr32, 0);
     }
@@ -31,6 +31,8 @@ uint8_t read8psram(uint32_t addr32) {
 uint16_t read16psram(uint32_t addr32) {
     return psram_read16(&psram_spi, addr32);
 }
+
+#include <stdio.h>
 
 #if defined(PSRAM_ASYNC) && defined(PSRAM_ASYNC_SYNCHRONIZE)
 void __isr psram_dma_complete_handler() {

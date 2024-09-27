@@ -88,6 +88,7 @@ static struct map kmap[] =
     { 0,		0 },
 };
 
+uint16_t ps2_read(void);
 
 char ps2_sym(void)
 {

@@ -1,5 +1,6 @@
 #include "debug.h"
 #include "ff.h"
+#include <string.h>
 
 static FIL f;
 void logMsg(char* msg) {
