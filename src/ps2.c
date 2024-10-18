@@ -143,7 +143,7 @@ uint32_t ps2get_raw_code(); // TODO: remap?
 #include "nespad.h"
 #include "ps2_rk.h"
 
-uint16_t ps2_read(void) {
+static uint16_t int_ps2_read(void) {
 	static uint16_t tcc = 0;
 	uint16_t w;
 	if (nespad_state2 && !nespad_state) nespad_state = nespad_state2;
@@ -185,6 +185,46 @@ uint16_t ps2_read(void) {
 	if (w & 0xF000) w = (w & ~0x7000);
 	//if (w) printf("ps2_read: %04Xh", w);
 	return w;
+}
+
+uint16_t ps2_read(void) {
+	static bool ctrl = false;
+	static bool alt = false;
+	static bool del = false;
+	uint16_t c = int_ps2_read();
+	switch (c)
+	{
+	case PS2_L_CTRL:
+	case PS2_R_CTRL:
+		ctrl = true;
+		break;
+	case PS2_L_CTRL | 0x8000:
+	case PS2_R_CTRL | 0x8000:
+		ctrl = false;
+		break;
+	case PS2_L_ALT:
+	case PS2_R_ALT:
+		alt = true;
+		break;
+	case PS2_L_ALT | 0x8000:
+	case PS2_R_ALT | 0x8000:
+		alt = false;
+		break;
+	case PS2_DELETE:
+	case PS2_KP_PERIOD:
+		del = true;
+		break;
+	case PS2_DELETE | 0x8000:
+	case PS2_KP_PERIOD | 0x8000:
+		del = false;
+		break;
+	}
+	if (ctrl && alt && del) {
+        f_unlink("/.firmware");
+        watchdog_enable(1, true);
+        while (true);
+	}
+	return c;
 }
 
 void ps2_leds(bool caps, bool num, bool scroll) {
