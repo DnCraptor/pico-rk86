@@ -89,10 +89,10 @@ again:
     ui_clear();
     ui_header("RADIO-86RK -->");
     ui_draw_list(
-		"1. (  F11 )  Return to the monitor (no cleanup)\n"
-		"2. (  F12 )  File manager\n"
-		"3. (Pause )  Full reset\n"
-		"4. (PrnSrn)  Change color (palleter)\n"
+		"1. (    F11     )  Return to the monitor (no cleanup)\n"
+		"2. (    F12     )  File manager\n"
+		"3. (Ctrl+Alt+Del)  Full reset\n"
+		"4. (   PrnSrn   )  Change color (palleter)\n"
 	);
     ui_draw_text(10, 16,
 		"Keyboard mapping:\n"
@@ -106,10 +106,10 @@ again:
 	"Emulation Management:\n"
 	"F5 - F10    - Call ROM E000 + n*4\n"
 	"Scroll Lock - Turbo mode ON/OFF\n"
-	"WIN+Cursor  - Shift screen\n"
-	"MENU        - Help about Radio-86RK\n"
+///	"WIN+Cursor  - Shift screen\n"
+///	"MENU        - Help about Radio-86RK\n"
 	);
-    xsprintf(str, "RK8266 for ZX Mulmulator");
+    xsprintf(str, "RK8266 for Mulmulator");
     ui_draw_text(64+6-ets_strlen(str), 33, str);
     switch (ui_select(4))
     {

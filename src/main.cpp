@@ -1,8 +1,9 @@
 #include <cstdlib>
 #include <cstring>
+#include <pico.h>
+#include <hardware/vreg.h>
 #include <hardware/clocks.h>
 #include <hardware/flash.h>
-#include <hardware/structs/vreg_and_chip_reset.h>
 #include <pico/bootrom.h>
 #include <pico/time.h>
 #include <pico/multicore.h>
@@ -120,11 +121,12 @@ static bool __not_in_flash_func(snd_timer_callback)(repeating_timer_t *rt) {
 static FATFS fatfs;
 bool SD_CARD_AVAILABLE = false;
 static void init_fs() {
-    FRESULT result = f_mount(&fatfs, "", 1);
+    FRESULT result = f_mount(&fatfs, "SD", 1);
     if (FR_OK != result) {
         printf("Unable to mount SD-card: %s (%d)", FRESULT_str(result), result);
     } else {
         SD_CARD_AVAILABLE = true;
+        f_mkdir("/rk86");
     }
 }
 
@@ -148,14 +150,33 @@ extern "C" uint16_t rk_by_at(uint16_t at) {
     return res;
 }
 
-static const uint32_t freq = 366 * KHZ;
 static float i8080_takts_in_ms = 1.98;
 
 int main() {
+#if !PICO_RP2040
+    volatile uint32_t *qmi_m0_timing=(uint32_t *)0x400d000c;
+    vreg_disable_voltage_limit();
+    vreg_set_voltage(VREG_VOLTAGE_1_60);
+    sleep_ms(33);
+    *qmi_m0_timing = 0x60007204;
+    set_sys_clock_khz(366 * KHZ, 0);
+    *qmi_m0_timing = 0x60007303;
+#else
     hw_set_bits(&vreg_and_chip_reset_hw->vreg, VREG_AND_CHIP_RESET_VREG_VSEL_BITS);
     sleep_ms(10);
-    set_sys_clock_khz(freq, true);
-    stdio_init_all();
+    set_sys_clock_khz(366 * KHZ, true);
+#endif
+///    stdio_init_all();
+
+    gpio_init(PICO_DEFAULT_LED_PIN);
+    gpio_set_dir(PICO_DEFAULT_LED_PIN, GPIO_OUT);
+    for (int i = 0; i < 6; i++) {
+        sleep_ms(33);
+        gpio_put(PICO_DEFAULT_LED_PIN, true);
+        sleep_ms(33);
+        gpio_put(PICO_DEFAULT_LED_PIN, false);
+    }
+
     keyboard_init();
     keyboard_send(0xFF);
     init_wii();

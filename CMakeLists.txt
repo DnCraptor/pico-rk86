@@ -1,32 +1,19 @@
-# == DO NEVER EDIT THE NEXT LINES for Raspberry Pi Pico VS Code Extension to work ==
-if(WIN32)
-    set(USERHOME $ENV{USERPROFILE})
-else()
-    set(USERHOME $ENV{HOME})
-endif()
-set(sdkVersion 2.0.0)
-set(toolchainVersion 13_2_Rel1)
-set(picotoolVersion 2.0.0)
-set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
-if (EXISTS ${picoVscode})
-    include(${picoVscode})
-endif()
-# ====================================================================================
-# == DO NEVER EDIT THE NEXT LINES for Raspberry Pi Pico VS Code Extension to work ==
-if(WIN32)
-    set(USERHOME $ENV{USERPROFILE})
-else()
-    set(USERHOME $ENV{HOME})
-endif()
-set(sdkVersion 2.0.0)
-set(toolchainVersion 13_2_Rel1)
-set(picotoolVersion 2.0.0)
-set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
-if (EXISTS ${picoVscode})
-    include(${picoVscode})
-endif()
-# ====================================================================================
 cmake_minimum_required(VERSION 3.22)
+# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
+if(WIN32)
+    set(USERHOME $ENV{USERPROFILE})
+else()
+    set(USERHOME $ENV{HOME})
+endif()
+set(sdkVersion 2.1.1)
+set(toolchainVersion 14_2_Rel1)
+set(picotoolVersion 2.1.1)
+set(picoVscode ${USERHOME}/.pico-sdk/cmake/pico-vscode.cmake)
+if (EXISTS ${picoVscode})
+    include(${picoVscode})
+endif()
+# ====================================================================================
+set(PICO_BOARD pico CACHE STRING "Board type")
 include(pico_sdk_import.cmake)
 
 project(pico-rk86 C CXX ASM)
@@ -42,7 +29,11 @@ if(NOT FLASH_SIZE)
 set(FLASH_SIZE 2048)
 endif ()
 
-SET(BUILD_NAME "${PROJECT_NAME}-${FLASH_SIZE}K")
+IF (PICO_BOARD STREQUAL "pico")
+    SET(BUILD_NAME "m1p1-rk86")
+ELSE ()
+    SET(BUILD_NAME "m1p2-rk86")
+ENDIF ()
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -54,8 +45,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${OUTPUT_DIR}")
 
-set(FAMILY rp2040)
-set(BOARD pico_sdk)
+#set(FAMILY rp2040)
+#set(BOARD pico_sdk)
 
 add_subdirectory(drivers/ps2)
 add_subdirectory(drivers/fatfs)
@@ -83,8 +74,8 @@ message(STATUS "")
 add_executable(${PROJECT_NAME} ${SRC})
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-configure_file(memmap.ld.in memmap.ld @ONLY)
-pico_set_linker_script(${PROJECT_NAME} ${CMAKE_CURRENT_BINARY_DIR}/memmap.ld)
+#configure_file(memmap.ld.in memmap.ld @ONLY)
+#pico_set_linker_script(${PROJECT_NAME} ${CMAKE_CURRENT_BINARY_DIR}/memmap.ld)
 
 pico_set_program_name(${PROJECT_NAME} "pico-rk86")
 pico_set_program_version(${PROJECT_NAME} "test")
@@ -144,7 +135,7 @@ endif ()
 target_compile_definitions(${PROJECT_NAME} PRIVATE
         PACKAGE_VERSION="3.2.0"
 
-        PICO_FLASH_SIZE_BYTES=16777216
+        PICO_FLASH_SIZE_BYTES=2048*1024
 
         # VGA 8 pins starts from pin:
         VGA_BASE_PIN=6
@@ -199,11 +190,11 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE
         __ets__=1
 )
 
-
-#pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
-#target_compile_definitions(slower_boot2 PRIVATE PICO_FLASH_SPI_CLKDIV=4)
-#pico_set_boot_stage2(${PROJECT_NAME} slower_boot2)
-
+IF (PICO_BOARD STREQUAL "pico")
+    pico_define_boot_stage2(slower_boot2 ${PICO_DEFAULT_BOOT_STAGE2_FILE})
+    target_compile_definitions(slower_boot2 PRIVATE PICO_FLASH_SPI_CLKDIV=4)
+    pico_set_boot_stage2(${PROJECT_NAME} slower_boot2)
+ENDIF ()
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE FLASH_SIZE=${FLASH_SIZE})
 
@@ -234,7 +225,7 @@ ENDIF ()
 set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME "${BUILD_NAME}")
 
 pico_enable_stdio_uart(${PROJECT_NAME} 0)
-pico_enable_stdio_usb(${PROJECT_NAME} 1)
+pico_enable_stdio_usb(${PROJECT_NAME} 0)
 
 #pico_set_binary_type(${PROJECT_NAME} no_flash)
 #pico_set_binary_type(${PROJECT_NAME} copy_to_ram)
