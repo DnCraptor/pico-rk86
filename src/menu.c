@@ -101,13 +101,12 @@ again:
 		"RUS/LAT - Caps Lock      3B  - Backspace\n"
 		"YC      - CTRL           \\   - Home\n"
 		"CC      - Shift          CTP - End/Delete\n"
+		"Any Win/Menu switch to/from WASD/OP mapping\n"
 	"\n"
 	"\n"
 	"Emulation Management:\n"
 	"F5 - F10    - Call ROM E000 + n*4\n"
 	"Scroll Lock - Turbo mode ON/OFF\n"
-///	"WIN+Cursor  - Shift screen\n"
-///	"MENU        - Help about Radio-86RK\n"
 	);
     xsprintf(str, "RK8266 for Mulmulator");
     ui_draw_text(64+6-ets_strlen(str), 33, str);

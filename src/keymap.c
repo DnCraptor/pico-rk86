@@ -251,6 +251,7 @@ static void task(void) {
 }
 
 static struct pt pt_task;
+bool win = false;
 
 void keymap_init(void) {
     PT_INIT(&pt_task);

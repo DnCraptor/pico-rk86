@@ -142,11 +142,22 @@ static std::map<uint16_t, uint16_t> char2rk;
 extern "C" void rk_2_at(uint16_t rk, uint16_t at) {
     char2rk[at] = rk;
 }
+extern "C" bool win;
 extern "C" uint16_t rk_by_at(uint16_t at) {
     std::map<uint16_t, uint16_t>::const_iterator i = char2rk.find(at);
     if (i == char2rk.end()) return 0;
     uint16_t res = i->second;
-    printf("%04Xh: %04Xh", at, res);
+    if (win) {
+        switch (res) {
+            case RK_W: res = RK_UP; break;
+            case RK_A: res = RK_LEFT; break;
+            case RK_S: res = RK_DOWN; break;
+            case RK_D: res = RK_RIGHT; break;
+            case RK_O: res = RK_VK; break;
+            case RK_P: res = RK_SPACE; break;
+        }
+    }
+    printf("%d %04Xh: %04Xh", win, at, res);
     return res;
 }
 
@@ -245,7 +256,6 @@ int main() {
     uint32_t prev_T = getCycleCount();
     uint32_t sec_T = prev_T;
     uint32_t sec_cycles = 0;
-    bool win = false;
     graphics_set_buffer(screen.vram, 320, 200);
     graphics_set_mode(TEXTMODE_DEFAULT);
     uint16_t pc = 0;
@@ -279,41 +289,6 @@ int main() {
 	        sec_T = prev_T = getCycleCount();
 	        sec_cycles = 0;
 	    }
-        if (win) {
-	        // Win нажата - обрабатываем спец-команды
-	        uint16_t c = ps2_read();
-            if (c > 0) pc = c;
-	        switch (c) {
-                case 0:
-                    break;
-		        case PS2_LEFT:
-		            // Экран влево
-		            if (screen.x_offset > 0) screen.x_offset--;
-		            break;
-		        case PS2_RIGHT:
-		            // Экран вправо
-		            if (screen.x_offset < 16) screen.x_offset++;
-		            break;
-		        case PS2_UP:
-		            // Экран вверх
-		            if (screen.y_offset > 8) screen.y_offset -= 8;
-                    else screen.y_offset = 0;
-		            break;
-		        case PS2_DOWN:
-		            // Экран вниз
-		            if (screen.y_offset < 8 * 8) screen.y_offset += 8;
-		            break;
-		        case PS2_L_WIN | 0x8000:
-		        case PS2_R_WIN | 0x8000:
-		            // Отжали Win
-		            win = false;
-		            break;
-        		default:
-		            printf("Unprocessed scancode (in win): %04Xh", c);
-		            break;
-	        }
-	    } else {
-	        // Win не нажата
 	        uint16_t c;
 	        bool rst = false;
     	    ps2_leds(kbd_rus(), true, !i8080_takts_in_ms);
@@ -358,7 +333,7 @@ int main() {
         		    i8080_jump(0xF800);
 		            break;
 				case PS2_F12:
-		            // Файловый менеджен
+		            // Файловый менеджер
 		            ui_start();
 			        menu_fileman();
 		            ui_stop();
@@ -378,25 +353,25 @@ int main() {
 		            i8080_takts_in_ms += 0.33;
                     if (i8080_takts_in_ms > 3.33) i8080_takts_in_ms = 0;
 		            break;
-				case PS2_L_WIN:
-		        case PS2_R_WIN:
+				case 0x811F: // PS2_L_WIN:
+		        case 0x8127: // PS2_R_WIN:
 		            // Нажали Win
-		            win = true;
+		            win = !win;
 		            break;
-				case PS2_MENU:
-		            // Отобразить справку
+				case 0x812F: // PS2_MENU:
+                    win = !win;
+                // Отобразить справку
 	        	/// TODO:    help_display();
 		            break;
         		default:
 		            printf("Unprocessed scancode: %04Xh", c);
 		            break;
-    	    }
+            }
     	    if (rst) {
 	            // Сбрасываем время циклов
 	        	sec_T = prev_T = getCycleCount();
 	        	sec_cycles = 0;
 	        }
-    	}
         tight_loop_contents();
     }
     __unreachable();
